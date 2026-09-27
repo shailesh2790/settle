@@ -1,0 +1,126 @@
+{
+ "arch": "factor",
+ "D": 128,
+ "H": 128,
+ "n_classes": 9,
+ "n_group_types": 3,
+ "params": 233225,
+ "train_steps": 215606,
+ "train_minutes": 166.66,
+ "val_solved": 0.5312,
+ "exported": "2026-09-27 09:28",
+ "checkpoint": "long_best.pt",
+ "tensors": {
+  "h_init": {
+   "shape": [
+    128
+   ],
+   "offset": 0
+  },
+  "embed.weight": {
+   "shape": [
+    10,
+    128
+   ],
+   "offset": 128
+  },
+  "pool.weight": {
+   "shape": [
+    128,
+    128
+   ],
+   "offset": 1408
+  },
+  "rest.weight": {
+   "shape": [
+    128,
+    128
+   ],
+   "offset": 17792
+  },
+  "rest.bias": {
+   "shape": [
+    128
+   ],
+   "offset": 34176
+  },
+  "self_.weight": {
+   "shape": [
+    128,
+    128
+   ],
+   "offset": 34304
+  },
+  "type_emb.weight": {
+   "shape": [
+    3,
+    128
+   ],
+   "offset": 50688
+  },
+  "msg_out.weight": {
+   "shape": [
+    128,
+    384
+   ],
+   "offset": 51072
+  },
+  "msg_out.bias": {
+   "shape": [
+    128
+   ],
+   "offset": 100224
+  },
+  "upd.0.weight": {
+   "shape": [
+    256,
+    384
+   ],
+   "offset": 100352
+  },
+  "upd.0.bias": {
+   "shape": [
+    256
+   ],
+   "offset": 198656
+  },
+  "upd.2.weight": {
+   "shape": [
+    128,
+    256
+   ],
+   "offset": 198912
+  },
+  "upd.2.bias": {
+   "shape": [
+    128
+   ],
+   "offset": 231680
+  },
+  "norm.weight": {
+   "shape": [
+    128
+   ],
+   "offset": 231808
+  },
+  "norm.bias": {
+   "shape": [
+    128
+   ],
+   "offset": 231936
+  },
+  "out.weight": {
+   "shape": [
+    9,
+    128
+   ],
+   "offset": 232064
+  },
+  "out.bias": {
+   "shape": [
+    9
+   ],
+   "offset": 233216
+  }
+ }
+}

@@ -1,0 +1,406 @@
+<title>Settle</title>
+<meta name="description" content="A 12k-parameter network that solves mazes by thinking in place, running entirely in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #EEF1F5; --surface: #F8FAFC; --line: #D3DAE3; --ink: #17202B; --muted: #5A6878;
+    --wall: #2E3B4C; --floor: #F8FAFC; --belief: #2F55D4; --state: #7A4FC4;
+    --start: #0F8A6A; --goal: #C2410C; --warn: #C2410C; --good: #0F8A6A;
+    --display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0F141B; --surface: #151C25; --line: #263140; --ink: #DCE3EB; --muted: #8B98A8;
+      --wall: #2A3645; --floor: #151C25; --belief: #8AA6FF; --state: #B794F4;
+      --start: #34C29B; --goal: #F08A4B; --warn: #F08A4B; --good: #34C29B;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0F141B; --surface: #151C25; --line: #263140; --ink: #DCE3EB; --muted: #8B98A8;
+    --wall: #2A3645; --floor: #151C25; --belief: #8AA6FF; --state: #B794F4;
+    --start: #34C29B; --goal: #F08A4B; --warn: #F08A4B; --good: #34C29B;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--ground); color: var(--ink); font: 15px/1.55 var(--body); padding-inline: 16px; padding-block: 28px 56px; }
+  .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 40px; }
+
+  header { display: grid; gap: 8px; }
+  h1 { font: 700 44px/1 var(--display); letter-spacing: -0.01em; margin: 0; }
+  h1 .tag { font: 500 13px/1 var(--mono); color: var(--muted); letter-spacing: 0.04em; margin-left: 12px; vertical-align: middle; }
+  .lede { margin: 0; max-width: 64ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  .lab { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; }
+  @media (max-width: 820px) { .lab { grid-template-columns: 1fr; } }
+
+  .stage { display: grid; gap: 12px; }
+  .board { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+  #maze { display: block; width: 100%; max-width: 100%; aspect-ratio: 1; touch-action: none; cursor: crosshair; border-radius: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+  .panel { display: grid; gap: 20px; }
+  .group { display: grid; gap: 8px; }
+  .label { font: 600 11px/1 var(--body); text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .seg button { border: 0; background: transparent; color: var(--ink); font: 500 13px/1 var(--body); padding: 9px 4px; cursor: pointer; border-left: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .seg button:first-child { border-left: 0; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--ground); }
+  .seg button:focus-visible, .btn:focus-visible { outline: 2px solid var(--belief); outline-offset: 2px; position: relative; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { flex: 1; border: 1px solid var(--ink); background: var(--ink); color: var(--ground); font: 600 14px/1 var(--body); padding: 11px 14px; border-radius: 6px; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+  .readout { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
+  .counter { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .counter .big { font: 500 40px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .counter .unit { font-size: 13px; color: var(--muted); }
+  .status { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .status.thinking { color: var(--belief); }
+  .status.solved { color: var(--good); }
+  .status.wrong, .status.nopath { color: var(--warn); }
+  .status.stopped { color: var(--muted); }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 13.5px; margin: 0; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .trace { display: grid; gap: 6px; }
+  #spark { width: 100%; height: 70px; display: block; }
+  .verdict { margin: 0; font-size: 13.5px; min-height: 2.8em; }
+
+  .explain { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px 40px; border-top: 1px solid var(--line); padding-top: 32px; }
+  h2 { font: 600 22px/1.2 var(--display); margin: 0 0 10px; text-wrap: balance; }
+  .explain p { margin: 0 0 12px; max-width: 62ch; }
+  pre { font: 13px/1.7 var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 0 0 12px; }
+  pre .c { color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); }
+  th { font: 600 11px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  td.num { font-family: var(--mono); }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; min-width: 60px; }
+  .bar i { display: block; height: 100%; background: var(--belief); border-radius: 3px; }
+  footer { color: var(--muted); font-size: 13px; }
+  code { font-family: var(--mono); font-size: 0.92em; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <!--NAV-->
+  <header>
+    <h1>Settle <span class="tag">11,953 parameters · runs on this device</span></h1>
+    <p class="lede">A tiny network that solves a maze by <b>thinking in place</b>. It applies the same small update to every cell over and over, and stops once its answer holds still. It generates no tokens and needs no server or GPU. Draw walls, move the start or goal, and watch the path settle. Then wall the path off completely: the original model draws a path anyway, while the retrained one says there is none.</p>
+  </header>
+
+  <section class="lab" aria-label="Maze solver">
+    <div class="stage">
+      <div class="board"><canvas id="maze" aria-label="Maze. Click cells to edit."></canvas></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--start)"></i>Start</span>
+        <span><i class="sw" style="background:var(--goal)"></i>Goal</span>
+        <span><i class="sw" style="background:var(--belief)"></i>Model's belief a cell is on the path</span>
+        <span><i class="sw" style="outline:2px solid var(--warn);outline-offset:-2px"></i>Missed or extra cell</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="readout" aria-live="polite">
+        <div class="counter">
+          <div><span class="big" id="t">0</span> <span class="unit">thinking steps</span></div>
+          <span class="status thinking" id="status">Thinking</span>
+        </div>
+        <dl class="kv">
+          <dt>Answer unchanged for</dt><dd id="stable">0 / 4 steps</dd>
+          <dt>Active units</dt><dd id="active">0%</dd>
+          <dt>Cells marked as path</dt><dd id="pathcells">0</dd>
+          <dt>Time per step</dt><dd id="ms">0 ms</dd>
+        </dl>
+        <div class="trace">
+          <span class="label">Cells changing their answer, per step</span>
+          <canvas id="spark"></canvas>
+        </div>
+        <p class="verdict" id="verdict"></p>
+      </div>
+
+      <div class="group">
+        <span class="label" id="size-l">Maze size</span>
+        <div class="seg" role="group" aria-labelledby="size-l" id="size">
+          <button id="sz5" data-n="5">11</button><button id="sz8" data-n="8">17</button><button id="sz10" data-n="10">21</button><button id="sz15" data-n="15">31</button><button id="sz20" data-n="20">41</button>
+        </div>
+        <p class="hint">Trained only on 9×9 to 15×15. The bigger sizes test whether longer thinking extends to problems it never saw.</p>
+      </div>
+
+      <div class="group">
+        <span class="label" id="model-l">Model</span>
+        <div class="seg" role="group" aria-labelledby="model-l" id="model">
+          <button id="modelOrig" data-v="orig">Original</button><button id="modelNopath" data-v="nopath">Knows &ldquo;no path&rdquo;</button>
+        </div>
+        <p class="hint">The second model had about 13 minutes of extra CPU training that included mazes with no route, so it can say so.</p>
+      </div>
+
+      <div class="group">
+        <span class="label" id="tool-l">Click on the maze to</span>
+        <div class="seg" role="group" aria-labelledby="tool-l" id="tool">
+          <button id="toolWall" data-v="wall">Draw walls</button><button id="toolStart" data-v="start">Move start</button><button id="toolGoal" data-v="goal">Move goal</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label" id="view-l">Show</span>
+        <div class="seg" role="group" aria-labelledby="view-l" id="view">
+          <button id="viewAns" data-v="answer">Answer</button><button id="viewState" data-v="state">Hidden state</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label" id="pace-l">Pace</span>
+        <div class="seg" role="group" aria-labelledby="pace-l" id="pace">
+          <button id="paceSlow" data-v="slow">Slow</button><button id="paceNorm" data-v="normal">Normal</button><button id="paceFast" data-v="fast">Fast</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="newMaze">New maze</button>
+        <button class="btn ghost" id="rethink">Think again</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="explain">
+    <div>
+      <h2>How it thinks</h2>
+      <p>An LLM reasons by writing one token after another. Settle reasons by updating a hidden state across the whole grid at once. Every step it looks at its current state and at the maze again, then refines the state. The same four small 3×3 convolutions run at every step, so harder mazes need more steps, not more parameters.</p>
+<pre><span class="c"># encode the problem once</span>
+h0      = relu(conv(x))
+<span class="c"># recall: the maze is re-injected every step</span>
+a_t     = relu(conv([h_t, x]))
+<span class="c"># bounded update, same weights every step</span>
+h_t+1   = tanh(h_t + conv(a_t))
+<span class="c"># every cell answers in parallel</span>
+answer  = conv(h_T)</pre>
+      <p>It halts when the thresholded answer has not changed for four consecutive steps. Switch the view to <b>Hidden state</b> to see the activity spread outward from the start and goal.</p>
+    </div>
+    <div>
+      <h2>Held-out results</h2>
+      <p>Trained on one CPU core in about 18 minutes, on 9×9 to 15×15 mazes. Tested on fresh mazes, most of them larger than anything it trained on.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Maze</th><th>Solved exactly</th><th></th><th>Mean steps</th></tr></thead>
+          <tbody>
+            <tr><td class="num">11×11</td><td class="num">100%</td><td><div class="bar"><i style="width:100%"></i></div></td><td class="num">22.5</td></tr>
+            <tr><td class="num">17×17</td><td class="num">100%</td><td><div class="bar"><i style="width:100%"></i></div></td><td class="num">43.5</td></tr>
+            <tr><td class="num">21×21</td><td class="num">92%</td><td><div class="bar"><i style="width:92%"></i></div></td><td class="num">83.8</td></tr>
+            <tr><td class="num">31×31</td><td class="num">73%</td><td><div class="bar"><i style="width:73%"></i></div></td><td class="num">209.5</td></tr>
+            <tr><td class="num">41×41</td><td class="num">17%</td><td><div class="bar"><i style="width:17%"></i></div></td><td class="num">~795</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px">At 41×41 it usually runs out of steps before the path connects.</p>
+      <h2 style="margin-top:22px">Knowing when there is no path</h2>
+      <p>The original model never admits a maze is unsolvable: on 80 test mazes with the route cut, it drew a path through every one. The retrained model says &ldquo;no path&rdquo; on all 80, even at 31×31. That honesty is what lets a search trust it. In the <a href="https://github.com/shailesh2790/settle/tree/main/arena">Arena</a> tests, search guided by the retrained model solved 58% of 41×41 mazes (the original alone: 25%) and its confidence separated right from wrong answers perfectly.</p>
+    </div>
+  </section>
+
+  <footer>Everything on this page runs locally in your browser. The weights ship inside the page and nothing is sent anywhere.</footer>
+</div>
+
+<script>/*SETTLE_JS*/</script>
+<script>
+const WEIGHTS = /*WEIGHTS*/null;
+const WEIGHTS_NOPATH = /*WEIGHTS_NOPATH*/null;
+(function () {
+  const MODELS = { orig: Settle.loadWeights(WEIGHTS) };
+  if (WEIGHTS_NOPATH) MODELS.nopath = Settle.loadWeights(WEIGHTS_NOPATH);
+  let model = MODELS.nopath ? "nopath" : "orig", P = MODELS[model];
+  const MAX_ITER = { 5: 120, 8: 250, 10: 400, 15: 700, 20: 1200 };
+  const PATIENCE = 4;
+  const $ = (id) => document.getElementById(id);
+  const cv = $("maze"), ctx = cv.getContext("2d"), sp = $("spark"), sctx = sp.getContext("2d");
+
+  let n = 8, tool = "wall", view = "answer", pace = "normal", seed = 20260926;
+  let maze, X, gt, solver, prev, stable, flips, running, done, stepMs = 0, lastSlow = 0, finalPred = null;
+  let colors = {};
+
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement), g = (k) => cs.getPropertyValue(k).trim();
+    colors = { wall: g("--wall"), floor: g("--floor"), belief: g("--belief"), state: g("--state"), start: g("--start"),
+               goal: g("--goal"), warn: g("--warn"), line: g("--line"), muted: g("--muted"), ink: g("--ink") };
+  }
+  function hexRgb(h) { const v = parseInt(h.replace("#", ""), 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255]; }
+  function mix(a, b, t) { const A = hexRgb(a), B = hexRgb(b); return `rgb(${A.map((x, i) => Math.round(x + (B[i] - x) * t)).join(",")})`; }
+
+  function setPressed(groupId, attr, value) {
+    for (const b of $(groupId).querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset[attr] == value));
+  }
+
+  function newMaze() {
+    const rand = Settle.mulberry32(seed++);
+    const m = Settle.makeMaze(n, rand);
+    maze = { S: m.S, grid: m.grid, start: m.start, goal: m.goal };
+    restart();
+  }
+
+  function restart() {
+    const { S, grid, start, goal } = maze;
+    X = Settle.encodeInput(grid, S, start, goal);
+    gt = Settle.shortestPath(grid, S, start, goal);
+    solver = Settle.createSolver(P, X, S, S);
+    prev = null; stable = 0; flips = []; running = true; done = null; finalPred = null;
+    draw(); drawSpark(); updateReadout();
+  }
+
+  function thinkOnce() {
+    const t0 = performance.now();
+    const lg = solver.step();
+    stepMs = stepMs ? stepMs * 0.8 + (performance.now() - t0) * 0.2 : performance.now() - t0;
+    const pred = new Uint8Array(lg.length); let changed = 0;
+    for (let i = 0; i < lg.length; i++) { pred[i] = lg[i] > 0 && !maze.grid[i] ? 1 : 0; if (prev && pred[i] !== prev[i]) changed++; }
+    if (prev) flips.push(changed);
+    stable = prev && changed === 0 ? stable + 1 : 0;
+    prev = pred;
+    if (stable >= PATIENCE || solver.t >= MAX_ITER[n]) finish(pred, stable >= PATIENCE ? "halted" : "cap");
+  }
+
+  function finish(pred, why) {
+    running = false; finalPred = pred;
+    const S = maze.S, claims = !!(pred[maze.start[0] * S + maze.start[1]] && pred[maze.goal[0] * S + maze.goal[1]]);
+    if (!gt) { done = { kind: claims ? "fakepath" : "saysnone", why }; return; }
+    if (!claims) { done = { kind: "gaveup", why }; return; }
+    let missed = 0, extra = 0;
+    for (let i = 0; i < pred.length; i++) { if (gt[i] && !pred[i]) missed++; else if (!gt[i] && pred[i]) extra++; }
+    done = { kind: missed + extra === 0 ? "solved" : "wrong", missed, extra, why };
+  }
+
+  function frame(now) {
+    if (running) {
+      if (pace === "slow") { if (now - lastSlow > 110) { thinkOnce(); lastSlow = now; } }
+      else if (pace === "normal") thinkOnce();
+      else { const end = performance.now() + 14; do thinkOnce(); while (running && performance.now() < end); }
+      draw(); drawSpark(); updateReadout();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---------------------------------------------------------------- drawing
+  function fitCanvas(c, h) {
+    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, hh = h ?? w;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(hh * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(hh * dpr); }
+    const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return [w, hh];
+  }
+
+  function draw() {
+    const [w] = fitCanvas(cv), S = maze.S, cs = w / S, lg = solver.logit, h = solver.h, C = P.C;
+    ctx.fillStyle = colors.floor; ctx.fillRect(0, 0, w, w);
+    let hmax = 1e-6, hv;
+    if (view === "state") {
+      hv = new Float32Array(S * S);
+      for (let i = 0; i < S * S; i++) { let s = 0; for (let c = 0; c < C; c++) s += Math.abs(h[i * C + c]); hv[i] = s / C; if (hv[i] > hmax) hmax = hv[i]; }
+    }
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+      const i = y * S + x, x0 = Math.floor(x * cs), y0 = Math.floor(y * cs), cw = Math.floor((x + 1) * cs) - x0, ch = Math.floor((y + 1) * cs) - y0;
+      if (maze.grid[i]) { ctx.fillStyle = colors.wall; ctx.fillRect(x0, y0, cw, ch); continue; }
+      let a;
+      if (view === "state") a = hv[i] / hmax;
+      else a = solver.t ? 1 / (1 + Math.exp(-lg[i])) : 0;
+      if (a > 0.02) { ctx.fillStyle = mix(colors.floor, view === "state" ? colors.state : colors.belief, Math.min(1, a) * 0.92); ctx.fillRect(x0, y0, cw, ch); }
+      if (finalPred && gt && gt[i] !== finalPred[i]) {
+        ctx.strokeStyle = colors.warn; ctx.lineWidth = Math.max(1.5, cs * 0.12);
+        const inset = ctx.lineWidth / 2 + 0.5; ctx.strokeRect(x0 + inset, y0 + inset, cw - 2 * inset, ch - 2 * inset);
+      }
+    }
+    for (const [pt, col] of [[maze.start, colors.start], [maze.goal, colors.goal]]) {
+      ctx.fillStyle = col; ctx.beginPath();
+      ctx.arc((pt[1] + 0.5) * cs, (pt[0] + 0.5) * cs, cs * 0.36, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  function drawSpark() {
+    const [w, hgt] = fitCanvas(sp, 70);
+    sctx.clearRect(0, 0, w, hgt);
+    sctx.strokeStyle = colors.line; sctx.lineWidth = 1;
+    sctx.beginPath(); sctx.moveTo(0, hgt - 0.5); sctx.lineTo(w, hgt - 0.5); sctx.stroke();
+    if (flips.length < 2) return;
+    const mx = Math.max(...flips, 1), top = 8, H = hgt - top - 2, N = flips.length;
+    const px = (k) => (k / (N - 1)) * (w - 6), py = (v) => top + H - (Math.sqrt(v) / Math.sqrt(mx)) * H;
+    sctx.beginPath(); sctx.moveTo(0, hgt);
+    for (let k = 0; k < N; k++) sctx.lineTo(px(k), py(flips[k]));
+    sctx.lineTo(px(N - 1), hgt); sctx.closePath();
+    sctx.fillStyle = mix(colors.floor, colors.belief, 0.22); sctx.fill();
+    sctx.beginPath();
+    for (let k = 0; k < N; k++) k ? sctx.lineTo(px(k), py(flips[k])) : sctx.moveTo(0, py(flips[0]));
+    sctx.strokeStyle = colors.belief; sctx.lineWidth = 1.5; sctx.stroke();
+    sctx.fillStyle = colors.belief; sctx.beginPath(); sctx.arc(px(N - 1), py(flips[N - 1]), 3, 0, Math.PI * 2); sctx.fill();
+    sctx.fillStyle = colors.muted; sctx.font = "11px 'IBM Plex Mono', monospace"; sctx.textBaseline = "top";
+    sctx.fillText(`peak ${mx}`, 2, 0);
+  }
+
+  function updateReadout() {
+    $("t").textContent = solver.t;
+    $("stable").textContent = `${Math.min(stable, PATIENCE)} / ${PATIENCE} steps`;
+    $("active").textContent = `${Math.round(solver.active * 100)}%`;
+    $("pathcells").textContent = prev ? prev.reduce((a, b) => a + b, 0) : 0;
+    $("ms").textContent = `${stepMs.toFixed(stepMs < 10 ? 1 : 0)} ms`;
+    const st = $("status"), v = $("verdict");
+    if (running) { st.className = "status thinking"; st.textContent = "Thinking"; v.textContent = gt ? `Shortest path is ${gt.reduce((a, b) => a + b, 0)} cells long.` : "No route connects start and goal."; return; }
+    const capNote = done.why === "cap" ? ` It reached the ${MAX_ITER[n]}-step limit without settling.` : "";
+    if (done.kind === "solved") { st.className = "status solved"; st.textContent = "Solved"; v.textContent = `Settled on the exact shortest path after ${solver.t} steps.${capNote}`; }
+    else if (done.kind === "saysnone") { st.className = "status solved"; st.textContent = "No path: correct"; v.textContent = `Start and goal are walled off from each other, and the model says so: it marks no route between them.${capNote}`; }
+    else if (done.kind === "fakepath") { st.className = "status nopath"; st.textContent = "Drew a fake path"; v.textContent = `Start and goal are walled off from each other, but the model still claims a route (${prev.reduce((a, b) => a + b, 0)} cells). Switch the model to compare.${capNote}`; }
+    else if (done.kind === "gaveup") { st.className = "status wrong"; st.textContent = "Said no path"; v.textContent = `A route exists (${gt.reduce((a, b) => a + b, 0)} cells), but the model did not find it and says there is none. An honest miss rather than a wrong path.${capNote}`; }
+    else { st.className = "status wrong"; st.textContent = done.why === "cap" ? "Out of steps" : "Wrong path"; v.textContent = `Differs from the shortest path: ${done.missed} missed, ${done.extra} extra cells (outlined).${capNote}`; }
+  }
+
+  // ---------------------------------------------------------------- editing
+  let painting = null;
+  function cellAt(e) {
+    const r = cv.getBoundingClientRect(), S = maze.S;
+    const x = Math.floor(((e.clientX - r.left) / r.width) * S), y = Math.floor(((e.clientY - r.top) / r.height) * S);
+    return x >= 0 && y >= 0 && x < S && y < S ? [y, x] : null;
+  }
+  const isEnd = (y, x) => (y === maze.start[0] && x === maze.start[1]) || (y === maze.goal[0] && x === maze.goal[1]);
+  cv.addEventListener("pointerdown", (e) => {
+    const c = cellAt(e); if (!c) return;
+    const [y, x] = c, i = y * maze.S + x;
+    if (tool === "wall") {
+      if (isEnd(y, x)) return;
+      painting = maze.grid[i] ? 0 : 1; maze.grid[i] = painting; cv.setPointerCapture(e.pointerId); running = false; draw();
+    } else {
+      if (maze.grid[i] || isEnd(y, x)) return;
+      maze[tool] = [y, x]; restart();
+    }
+  });
+  cv.addEventListener("pointermove", (e) => {
+    if (painting === null) return;
+    const c = cellAt(e); if (!c || isEnd(c[0], c[1])) return;
+    maze.grid[c[0] * maze.S + c[1]] = painting; draw();
+  });
+  const endPaint = () => { if (painting !== null) { painting = null; restart(); } };
+  cv.addEventListener("pointerup", endPaint); cv.addEventListener("pointercancel", endPaint);
+
+  // ---------------------------------------------------------------- controls
+  $("size").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; n = +b.dataset.n; setPressed("size", "n", n); stepMs = 0; newMaze(); });
+  $("tool").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; tool = b.dataset.v; setPressed("tool", "v", tool); });
+  $("view").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; view = b.dataset.v; setPressed("view", "v", view); draw(); });
+  $("pace").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; pace = b.dataset.v; setPressed("pace", "v", pace); });
+  if (!MODELS.nopath) $("model").closest(".group").hidden = true;
+  $("model").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b || !MODELS[b.dataset.v]) return; model = b.dataset.v; P = MODELS[model]; setPressed("model", "v", model); stepMs = 0; restart(); });
+  $("newMaze").addEventListener("click", newMaze);
+  $("rethink").addEventListener("click", restart);
+
+  const retheme = () => { readColors(); draw(); drawSpark(); };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+  new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  new ResizeObserver(() => { draw(); drawSpark(); }).observe(cv);
+  document.fonts && document.fonts.ready.then(() => drawSpark());
+
+  setPressed("model", "v", model); setPressed("size", "n", n); setPressed("tool", "v", tool); setPressed("view", "v", view); setPressed("pace", "v", pace);
+  readColors(); newMaze(); requestAnimationFrame(frame);
+})();
+</script>

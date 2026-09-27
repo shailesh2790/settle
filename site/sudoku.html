@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Settle Sudoku Lab</title>
+<meta name="description" content="A 233k-parameter network that learned Sudoku from examples, with verified search. Runs in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+  .lab { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 28px; align-items: start; }
+  @media (max-width: 860px) { .lab { grid-template-columns: 1fr; } }
+  .stage { display: grid; gap: 12px; justify-items: center; }
+  .board { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; width: 100%; max-width: 560px; }
+  .grid { display: grid; grid-template-columns: repeat(9, 1fr); aspect-ratio: 1; max-width: 100%; border: 2px solid var(--ink); border-radius: 2px; }
+  .cell { position: relative; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface);
+          color: var(--ink); font: 500 clamp(15px, 4.2vw, 26px)/1 var(--mono); padding: 0; cursor: pointer; display: grid; place-items: center; min-width: 0; }
+  .cell:nth-child(9n) { border-right: 0; }
+  .cell:nth-child(9n+3), .cell:nth-child(9n+6) { border-right: 2px solid var(--ink); }
+  .cell:nth-child(n+19):nth-child(-n+27), .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--ink); }
+  .cell:nth-child(n+73) { border-bottom: 0; }
+  .cell.given { font-weight: 500; color: var(--ink); background: color-mix(in srgb, var(--line) 45%, var(--surface)); }
+  .cell.pred { color: var(--belief); }
+  .cell.guess { color: var(--guess); font-weight: 500; }
+  .cell.dup { box-shadow: inset 0 0 0 2px var(--warn); }
+  .cell.sel { box-shadow: inset 0 0 0 3px var(--belief); }
+  .cell .bar { position: absolute; left: 12%; right: 12%; bottom: 9%; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .cell .bar i { display: block; height: 100%; background: var(--belief); }
+  .pad { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width: 100%; max-width: 560px; }
+  .pad button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 16px/1 var(--mono); padding: 10px 0; border-radius: 6px; cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); max-width: 560px; width: 100%; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  .panel { display: grid; gap: 18px; }
+  #spark { width: 100%; height: 64px; display: block; }
+  .verdict { margin: 0; font-size: 13.5px; min-height: 2.8em; }
+  textarea { width: 100%; font: 12.5px/1.5 var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; resize: vertical; min-height: 58px; }
+  .msg { font-size: 12.5px; margin: 0; color: var(--warn); min-height: 1.2em; }
+  .modelcard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+  .modelcard div { display: grid; gap: 4px; }
+  .modelcard b { font: 500 16px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+  .explain { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px 40px; border-top: 1px solid var(--line); padding-top: 28px; }
+  .explain p { margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Site">
+  <a class="brand" href="./">Settle</a>
+  <a class="link" href="maze.html">Maze</a>
+  <a class="link" href="sudoku.html" aria-current="page">Sudoku</a>
+  <a class="link" href="code.html">Code</a>
+  <span class="chip" id="modelChip">loading model…</span>
+</nav>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>Sudoku Lab</h1>
+    <p class="lede">A small network that learned Sudoku from solved examples. It was never told the rules. It thinks by updating every cell together until the grid <b>checks out</b>. When it gets stuck, <b>verified search</b> guesses the cell it is least sure of and lets each guess settle. Everything runs on your device.</p>
+  </header>
+
+  <section class="lab" aria-label="Sudoku solver">
+    <div class="stage">
+      <div class="board"><div class="grid" id="grid" role="grid" aria-label="Sudoku grid"></div></div>
+      <div class="pad" id="pad" aria-label="Enter a digit in the selected cell">
+        <button data-d="1">1</button><button data-d="2">2</button><button data-d="3">3</button><button data-d="4">4</button><button data-d="5">5</button><button data-d="6">6</button><button data-d="7">7</button><button data-d="8">8</button><button data-d="9">9</button><button data-d="0" aria-label="Erase">⌫</button>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:color-mix(in srgb, var(--line) 45%, var(--surface));outline:1px solid var(--line)"></i>Given</span>
+        <span><i class="sw" style="background:var(--belief)"></i>Model's answer (bar = confidence)</span>
+        <span><i class="sw" style="background:var(--guess)"></i>Search guess</span>
+        <span><i class="sw" style="outline:2px solid var(--warn);outline-offset:-2px"></i>Breaks a rule</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="readout" aria-live="polite">
+        <div class="counter">
+          <div><span class="big" id="t">0</span> <span class="unit">thinking steps</span></div>
+          <span class="status" id="status">Ready</span>
+        </div>
+        <dl class="kv">
+          <dt>Rules broken</dt><dd id="viol">–</dd>
+          <dt>Cells changed last step</dt><dd id="changed">–</dd>
+          <dt>Time per step</dt><dd id="ms">–</dd>
+          <dt>Search</dt><dd id="srch">–</dd>
+        </dl>
+        <div style="display:grid;gap:6px">
+          <span class="label">Cells changing their answer, per step</span>
+          <canvas id="spark"></canvas>
+        </div>
+        <p class="verdict" id="verdict">Loading the model…</p>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="solve" disabled>Solve</button>
+        <button class="btn ghost" id="stop" disabled>Stop</button>
+      </div>
+
+      <div class="group">
+        <span class="label" id="band-l">Sample puzzle, by difficulty</span>
+        <div class="seg" role="group" aria-labelledby="band-l" id="band">
+          <button id="b0" data-v="no guessing">Easy</button><button id="b1" data-v="1-10 backtracks">Medium</button><button id="b2" data-v="11-50 backtracks">Hard</button><button id="b3" data-v=">50 backtracks">Extreme</button>
+        </div>
+        <p class="hint" id="sampleInfo">Held-out Sudoku-Extreme puzzles the model never trained on.</p>
+      </div>
+
+      <div class="group">
+        <label class="label" for="paste">Or paste a puzzle</label>
+        <textarea id="paste" spellcheck="false" placeholder="81 characters, row by row. Use . or 0 for blanks."></textarea>
+        <div class="row"><button class="btn ghost" id="loadPaste">Load puzzle</button><button class="btn ghost" id="clear">Clear grid</button></div>
+        <p class="msg" id="pasteMsg"></p>
+      </div>
+
+      <div class="group">
+        <span class="label" id="steps-l">Thinking steps before giving up</span>
+        <div class="seg" role="group" aria-labelledby="steps-l" id="steps">
+          <button id="s64" data-v="64">64</button><button id="s128" data-v="128">128</button><button id="s256" data-v="256">256</button>
+        </div>
+      </div>
+      <div class="group">
+        <span class="label" id="search-l">When thinking gets stuck</span>
+        <div class="seg" role="group" aria-labelledby="search-l" id="search">
+          <button id="sOff" data-v="0">Stop</button><button id="sB4" data-v="4">Search ×4</button><button id="sB8" data-v="8">Search ×8</button><button id="sB16" data-v="16">Search ×16</button>
+        </div>
+        <p class="hint">×N is how many branches stay alive per round. More branches solve more puzzles and take longer.</p>
+      </div>
+      <div class="group">
+        <span class="label" id="pace-l">Pace</span>
+        <div class="seg" role="group" aria-labelledby="pace-l" id="pace">
+          <button id="pWatch" data-v="60">Watch</button><button id="pFast" data-v="0">Fast</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>Model on this page</h2>
+    <div class="modelcard" id="modelcard"><div><span class="label">Status</span><b>Loading…</b></div></div>
+    <p class="hint">Replace <code>models/sudoku_model.json</code> and <code>.bin</code> with a new export and redeploy. This card updates to match.</p>
+  </section>
+
+  <section class="explain">
+    <div>
+      <h2>How it thinks</h2>
+      <p>Each cell keeps a hidden state. Every step, each row, column and box pools what its cells currently believe, and each cell hears back what the <em>rest</em> of its group believes. The same small update then runs on every cell. The model knows which cells share a group, but not that a group must hold 1 to 9 once each. It learned that from solved examples.</p>
+<pre><span class="c"># per step, same weights every step</span>
+rest   = sum(group) - me          <span class="c"># the rest of my row / column / box</span>
+msg    = relu(R·rest + S·me + type)
+h      = norm(h + MLP([h, puzzle, msg]))
+answer = argmax(out(h))           <span class="c"># all 81 cells at once</span></pre>
+      <p>It stops as soon as the grid passes the checker. It never returns an answer that breaks a rule. At worst it says it could not solve the puzzle.</p>
+    </div>
+    <div>
+      <h2>How good is it</h2>
+      <p>The current model trained for 3 hours on a laptop GPU. It still has only 233k parameters, but it now handles many puzzles that need guessing on its own, and search covers most of the rest. Results on 200 random held-out puzzles, with the 10-minute model for comparison:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Difficulty</th><th>Thinking</th><th>+ search ×32</th><th>10-min model</th></tr></thead>
+          <tbody>
+            <tr><td>Easy (no guessing)</td><td class="num">100%</td><td class="num">100%</td><td class="num">50% / 96%</td></tr>
+            <tr><td>Medium (1–10 backtracks)</td><td class="num">47%</td><td class="num">73%</td><td class="num">2% / 51%</td></tr>
+            <tr><td>Hard (11–50)</td><td class="num">38%</td><td class="num">65%</td><td class="num">0% / 23%</td></tr>
+            <tr><td>Extreme (&gt;50)</td><td class="num">30%</td><td class="num">70%</td><td class="num">0% / 5%</td></tr><tr><td><b>All</b></td><td class="num"><b>48%</b></td><td class="num"><b>72%</b></td><td class="num">7.5% / 38%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px">The browser runs a narrower search than those measurements (×4 to ×16), so expect somewhat lower numbers here.</p>
+    </div>
+  </section>
+
+  <footer>Runs entirely in your browser. No puzzle leaves your device.</footer>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const gridEl = $("grid"), sp = $("spark"), sctx = sp.getContext("2d");
+  let q = new Uint8Array(81), answer = null, sel = -1;
+  let view = { probs: null, pred: null, guess: null, dup: null };
+  let flips = [], running = false, worker = null, modelReady = false, meta = null;
+  let band = "no guessing", maxSteps = 128, beam = 8, delayMs = 60, samples = [], sampleIdx = {};
+
+  // ---------------------------------------------------------------- grid
+  for (let i = 0; i < 81; i++) {
+    const b = document.createElement("button");
+    b.className = "cell"; b.dataset.i = i; b.setAttribute("role", "gridcell");
+    b.innerHTML = '<span class="d"></span><span class="bar" hidden><i></i></span>';
+    gridEl.appendChild(b);
+  }
+  const cells = [...gridEl.children];
+
+  const UNITS = [];
+  for (let r = 0; r < 9; r++) UNITS.push([...Array(9)].map((_, c) => r * 9 + c));
+  for (let c = 0; c < 9; c++) UNITS.push([...Array(9)].map((_, r) => r * 9 + c));
+  for (let br = 0; br < 3; br++) for (let bc = 0; bc < 3; bc++) { const u = []; for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) u.push((br * 3 + r) * 9 + bc * 3 + c); UNITS.push(u); }
+  function dupCells(g) {
+    const bad = new Uint8Array(81);
+    for (const u of UNITS) { const seen = {}; for (const v of u) { const d = g[v]; if (!d) continue; (seen[d] = seen[d] || []).push(v); } for (const k in seen) if (seen[k].length > 1) seen[k].forEach((v) => (bad[v] = 1)); }
+    return bad;
+  }
+
+  function render() {
+    const shown = new Uint8Array(81);
+    for (let i = 0; i < 81; i++) {
+      const c = cells[i], d = c.firstChild, bar = c.lastChild;
+      let cls = "cell", digit = 0, conf = null;
+      if (q[i]) { cls += " given"; digit = q[i]; }
+      else if (view.guess && view.guess[i]) { cls += " guess"; digit = view.guess[i]; }
+      else if (view.pred) { cls += " pred"; digit = view.pred[i]; conf = view.probs ? view.probs[i * 9 + digit - 1] : null; }
+      shown[i] = digit;
+      if (i === sel) cls += " sel";
+      if (view.dup && view.dup[i]) cls += " dup";
+      c.className = cls;
+      d.textContent = digit ? digit : "";
+      if (cls.includes("pred") && conf !== null) { c.style.opacity = ""; d.style.opacity = (0.35 + 0.65 * conf).toFixed(2); bar.hidden = false; bar.firstChild.style.width = (conf * 100).toFixed(0) + "%"; }
+      else { d.style.opacity = ""; bar.hidden = true; }
+      const rc = `row ${Math.floor(i / 9) + 1}, column ${i % 9 + 1}`;
+      c.setAttribute("aria-label", digit ? `${rc}: ${digit}${q[i] ? " (given)" : conf !== null ? `, ${Math.round(conf * 100)}% sure` : ""}` : `${rc}: empty`);
+    }
+    return shown;
+  }
+
+  function clearModelView() { view = { probs: null, pred: null, guess: null, dup: null }; flips = []; drawSpark(); }
+
+  gridEl.addEventListener("click", (e) => { const c = e.target.closest(".cell"); if (!c) return; sel = +c.dataset.i; render(); c.focus(); });
+  function setDigit(d) {
+    if (sel < 0 || running) return;
+    q[sel] = d; answer = null; clearModelView(); $("sampleInfo").textContent = "Your own puzzle.";
+    view.dup = dupCells(q); render(); updateIdle();
+  }
+  gridEl.addEventListener("keydown", (e) => {
+    if (sel < 0) return;
+    if (/^[1-9]$/.test(e.key)) { setDigit(+e.key); e.preventDefault(); }
+    else if (["0", "Backspace", "Delete", "."].includes(e.key)) { setDigit(0); e.preventDefault(); }
+    else if (e.key.startsWith("Arrow")) {
+      const r = Math.floor(sel / 9), c = sel % 9;
+      const nr = (r + (e.key === "ArrowDown") - (e.key === "ArrowUp") + 9) % 9, nc = (c + (e.key === "ArrowRight") - (e.key === "ArrowLeft") + 9) % 9;
+      sel = nr * 9 + nc; render(); cells[sel].focus(); e.preventDefault();
+    }
+  });
+  $("pad").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setDigit(+b.dataset.d); });
+
+  // ---------------------------------------------------------------- readout
+  function setStatus(text, kind) { const s = $("status"); s.textContent = text; s.className = "status" + (kind ? " " + kind : ""); }
+  function updateIdle() {
+    const n = q.reduce((a, v) => a + (v > 0), 0), conflict = view.dup && view.dup.some((v) => v);
+    $("solve").disabled = !modelReady || running || n === 0 || conflict;
+    $("stop").disabled = !running;
+    if (!running) {
+      if (conflict) { setStatus("Fix grid", "bad"); $("verdict").textContent = "Two givens clash (outlined). Fix them before solving."; }
+      else if (modelReady) { setStatus("Ready"); $("verdict").textContent = n ? `${n} givens. Press Solve.` : "Enter givens or load a sample."; }
+    }
+  }
+
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement), g = (k) => cs.getPropertyValue(k).trim();
+    return { belief: g("--belief"), line: g("--line"), muted: g("--muted"), surface: g("--surface") };
+  }
+  function drawSpark() {
+    const dpr = window.devicePixelRatio || 1, w = sp.clientWidth, h = 64;
+    sp.width = Math.round(w * dpr); sp.height = Math.round(h * dpr); sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const col = readColors(); sctx.clearRect(0, 0, w, h);
+    sctx.strokeStyle = col.line; sctx.lineWidth = 1; sctx.beginPath(); sctx.moveTo(0, h - 0.5); sctx.lineTo(w, h - 0.5); sctx.stroke();
+    if (flips.length < 2) return;
+    const mx = Math.max(...flips, 1), top = 14, H = h - top - 2, N = flips.length;
+    const px = (k) => (k / (N - 1)) * (w - 6), py = (v) => top + H - (Math.sqrt(v) / Math.sqrt(mx)) * H;
+    sctx.beginPath(); sctx.moveTo(0, h); for (let k = 0; k < N; k++) sctx.lineTo(px(k), py(flips[k])); sctx.lineTo(px(N - 1), h); sctx.closePath();
+    sctx.globalAlpha = 0.18; sctx.fillStyle = col.belief; sctx.fill(); sctx.globalAlpha = 1;
+    sctx.beginPath(); for (let k = 0; k < N; k++) k ? sctx.lineTo(px(k), py(flips[k])) : sctx.moveTo(0, py(flips[0]));
+    sctx.strokeStyle = col.belief; sctx.lineWidth = 1.5; sctx.stroke();
+    sctx.fillStyle = col.belief; sctx.beginPath(); sctx.arc(px(N - 1), py(flips[N - 1]), 3, 0, Math.PI * 2); sctx.fill();
+    sctx.fillStyle = col.muted; sctx.font = "11px 'IBM Plex Mono', monospace"; sctx.textBaseline = "top"; sctx.fillText(`peak ${mx}`, 2, 0);
+  }
+
+  // ---------------------------------------------------------------- worker
+  function startWorker() {
+    worker = new Worker("sudoku-worker.js");
+    worker.onmessage = onWorker;
+    worker.onerror = (e) => { setStatus("Error", "bad"); $("verdict").textContent = "The solver crashed: " + (e.message || "unknown error") + ". Reload the page."; running = false; updateIdle(); };
+  }
+  function onWorker(ev) {
+    const m = ev.data;
+    if (m.type === "ready") { modelReady = true; meta = m.meta; showModel(); updateIdle(); if (!running && q.some((v) => v) && autoSolve) { autoSolve = false; solve(); } return; }
+    if (m.type === "error") { setStatus("No model", "bad"); $("verdict").textContent = m.message; $("modelChip").textContent = "model missing"; return; }
+    if (m.type === "step") {
+      view.probs = m.probs; view.pred = m.pred; view.guess = null;
+      if (m.t > 1) flips.push(m.changed);
+      $("t").textContent = m.t; $("viol").textContent = m.violations; $("changed").textContent = m.t > 1 ? m.changed : "–";
+      $("ms").textContent = m.stepMs.toFixed(1) + " ms";
+      view.dup = null; render(); drawSpark(); return;
+    }
+    if (m.type === "round") {
+      setStatus(`Search ${m.round}`, "search");
+      const guess = new Uint8Array(81); for (let i = 0; i < 81; i++) if (!q[i] && m.best[i]) guess[i] = m.best[i];
+      view.guess = guess; render();
+      $("srch").textContent = `round ${m.round}, ${m.beam} branches`;
+      $("verdict").textContent = `Thinking stalled, so it is guessing. Purple digits are the guesses in the most promising branch. ${(m.ms / 1000).toFixed(1)} s so far.`;
+      return;
+    }
+    if (m.type === "done") {
+      running = false; view.guess = null;
+      if (m.reason === "conflict") { setStatus("Fix grid", "bad"); updateIdle(); return; }
+      view.pred = m.pred; if (m.reason === "search") view.probs = null;
+      const secs = (m.ms / 1000).toFixed(m.ms < 10000 ? 2 : 1);
+      if (m.ok) {
+        view.dup = null; render();
+        setStatus("Verified", "good");
+        const how = m.reason === "search" ? `after ${m.steps} thinking steps and ${m.rounds} rounds of search` : `after ${m.steps} thinking steps`;
+        const match = answer ? (m.pred.every((v, i) => v === answer[i]) ? " Matches the published solution." : " Differs from the published solution, but still passes every rule.") : "";
+        $("verdict").textContent = `Solved ${how}, in ${secs} s. Every row, column and box checks out.${match}`;
+        $("viol").textContent = 0; $("srch").textContent = m.reason === "search" ? `${m.rounds} rounds` : "not needed";
+      } else {
+        const shown = render(); view.dup = dupCells(shown); render();
+        const v = view.dup.reduce((a, b) => a + b, 0);
+        setStatus("Not solved", "bad");
+        $("verdict").textContent = m.reason === "gave-up"
+          ? `Search ran out of branches after ${secs} s. The outlined cells break a rule. Try a wider search or more thinking steps.`
+          : `Thinking stopped at ${m.steps} steps without a valid grid (${v} cells break a rule). Turn on search to let it guess.`;
+        $("srch").textContent = m.reason === "gave-up" ? "gave up" : "off";
+      }
+      updateIdle();
+    }
+  }
+
+  function solve() {
+    if (!modelReady || running) return;
+    running = true; sel = -1; clearModelView(); render();
+    $("t").textContent = 0; $("viol").textContent = "–"; $("changed").textContent = "–"; $("srch").textContent = beam ? "standing by" : "off";
+    setStatus("Thinking", "thinking"); $("verdict").textContent = "Every cell updates together, step by step.";
+    updateIdle();
+    worker.postMessage({ type: "solve", q: Array.from(q), maxSteps, search: beam > 0, beam, settleSteps: 32, maxRounds: 30, delayMs });
+  }
+  function stop() {
+    if (!running) return;
+    worker.terminate(); modelReady = false; running = false;
+    setStatus("Stopped"); $("verdict").textContent = "Stopped. Reloading the model…";
+    updateIdle(); startWorker();
+  }
+  $("solve").addEventListener("click", solve);
+  $("stop").addEventListener("click", stop);
+
+  // ---------------------------------------------------------------- puzzles
+  function loadGrid(str, ans, info) {
+    if (running) stop();
+    q = Uint8Array.from(str, (ch) => +ch); answer = ans ? Uint8Array.from(ans, (ch) => +ch) : null;
+    sel = -1; clearModelView(); view.dup = dupCells(q); render();
+    $("t").textContent = 0; $("viol").textContent = "–"; $("changed").textContent = "–"; $("srch").textContent = "–";
+    $("sampleInfo").textContent = info; updateIdle();
+  }
+  function loadSample() {
+    const pool = samples.filter((s) => s.band === band); if (!pool.length) return;
+    sampleIdx[band] = ((sampleIdx[band] ?? Math.floor(Math.random() * pool.length)) + 1) % pool.length;
+    const s = pool[sampleIdx[band]], n = [...s.q].filter((c) => c !== "0").length;
+    loadGrid(s.q, s.a, `Sample ${sampleIdx[band] + 1} of ${pool.length} · ${n} givens · a classical solver needs ${s.rating} backtrack${s.rating === 1 ? "" : "s"}. Click the level again for another.`);
+  }
+  $("band").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; band = b.dataset.v; press("band", band); loadSample(); });
+  $("loadPaste").addEventListener("click", () => {
+    const raw = $("paste").value.replace(/[\s|+\-]/g, "").replace(/[._*xX]/g, "0");
+    if (!/^[0-9]{81}$/.test(raw)) { $("pasteMsg").textContent = `Need exactly 81 digits or dots; got ${raw.length} usable characters.`; return; }
+    $("pasteMsg").textContent = ""; loadGrid(raw, null, "Your own puzzle.");
+  });
+  $("clear").addEventListener("click", () => loadGrid("0".repeat(81), null, "Empty grid. Click a cell and type digits."));
+
+  // ---------------------------------------------------------------- settings
+  function press(id, v) { for (const b of $(id).querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === String(v))); }
+  $("steps").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; maxSteps = +b.dataset.v; press("steps", maxSteps); });
+  $("search").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; beam = +b.dataset.v; press("search", beam); });
+  $("pace").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; delayMs = +b.dataset.v; press("pace", delayMs); });
+  press("band", band); press("steps", maxSteps); press("search", beam); press("pace", delayMs);
+
+  function showModel() {
+    $("modelChip").textContent = `model: ${meta.checkpoint} · ${(meta.params / 1000).toFixed(0)}k params`;
+    const items = [
+      ["Parameters", meta.params.toLocaleString()], ["Architecture", `factor graph, D=${meta.D}`],
+      ["Training steps", meta.train_steps.toLocaleString()], ["Validation solved", meta.val_solved != null ? `${(meta.val_solved * 100).toFixed(1)}% (thinking only)` : "–"],
+      ["Checkpoint", meta.checkpoint], ["Exported", meta.exported],
+    ];
+    $("modelcard").innerHTML = items.map(([k, v]) => `<div><span class="label">${k}</span><b>${v}</b></div>`).join("");
+  }
+
+  const retheme = () => drawSpark();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+  new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  new ResizeObserver(drawSpark).observe(sp);
+
+  // Open in a working state: an easy held-out sample, solving as soon as the model is loaded.
+  let autoSolve = true;
+  render(); drawSpark(); startWorker();
+  fetch("data/sudoku_samples.json").then((r) => r.json()).then((s) => { samples = s; sampleIdx[band] = -1; loadSample(); if (modelReady && autoSolve) { autoSolve = false; solve(); } })
+    .catch(() => { $("sampleInfo").textContent = "Samples could not be loaded. Paste a puzzle instead."; });
+})();
+</script>
+</body>
+</html>

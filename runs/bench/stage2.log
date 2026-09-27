@@ -1,0 +1,8 @@
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+model  thresh  pass@1  +repair   tok/s  s/task  VRAM GB
+ar          -   50.2%    52.9%    16.4   15.05     3.30
+
+Decision gate: diffusion pass@1 within 5 points of AR AND >= 2x tokens/s at batch 1 -> build on it.
+exit 0

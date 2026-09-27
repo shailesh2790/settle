@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Settle</title>
+<meta name="description" content="Small recurrent reasoners that think by iterating instead of writing tokens. They run on your own device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+  .hero { display: grid; gap: 14px; padding-block: 12px 4px; }
+  .hero h1 { font-size: clamp(34px, 6vw, 56px); max-width: 18ch; }
+  .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px; }
+  .demo { display: grid; gap: 14px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px; color: inherit; text-decoration: none; }
+  .demo:hover { border-color: var(--belief); }
+  .demo h2 { margin: 0; }
+  .demo p { margin: 0; color: var(--muted); }
+  .demo canvas { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; display: block; background: var(--ground); }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 13px/1.3 var(--mono); color: var(--ink); }
+  .stats span { color: var(--muted); }
+  .go { font-weight: 600; color: var(--belief); }
+  .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 36px; border-top: 1px solid var(--line); padding-top: 28px; }
+  .principles h3 { font: 600 17px/1.25 var(--display); margin: 0 0 6px; }
+  .principles p { margin: 0; color: var(--muted); font-size: 14.5px; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Site">
+  <a class="brand" href="./" aria-current="page">Settle</a>
+  <a class="link" href="maze.html">Maze</a>
+  <a class="link" href="sudoku.html">Sudoku</a>
+  <a class="link" href="code.html">Code</a>
+</nav>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>Reasoning that runs on your own laptop</h1>
+    <p class="lede">Settle models don't write an answer one token at a time. They hold the whole problem in a hidden state and <b>refine it in place</b>, applying the same small update over and over until the answer stops changing or passes a checker. They have thousands of parameters, not billions, and run in this page with no server and no GPU cluster.</p>
+  </header>
+
+  <section class="demos" aria-label="Demos">
+    <a class="demo" href="maze.html">
+      <canvas id="mazeThumb" aria-hidden="true"></canvas>
+      <h2>Maze</h2>
+      <p>Finds the shortest path through a maze by spreading belief across the grid. Trained on small mazes, it keeps working on larger ones by thinking longer.</p>
+      <div class="stats"><div>11,953 <span>params</span></div><div>100% <span>on 17×17</span></div><div>18 min <span>CPU training</span></div></div>
+      <span class="go">Open the maze →</span>
+    </a>
+    <a class="demo" href="sudoku.html">
+      <canvas id="sudokuThumb" aria-hidden="true"></canvas>
+      <h2>Sudoku</h2>
+      <p>Learned Sudoku from solved examples without being told the rules. When deduction stalls, it guesses the cell it is least sure of and checks every answer.</p>
+      <div class="stats"><div>233k <span>params</span></div><div>72% <span>of hard set, with search</span></div><div>3 h <span>laptop GPU</span></div></div>
+      <span class="go">Open the Sudoku lab →</span>
+    </a>
+  </section>
+
+  <section class="principles">
+    <div><h3>Compute follows difficulty</h3><p>Easy problems settle in a few steps and hard ones take more. The model stays the same size and just thinks longer.</p></div>
+    <div><h3>Answers you can check</h3><p>When a problem has rules, the model stops only when its answer passes them. It says "not solved" rather than guess wrong.</p></div>
+    <div><h3>Small enough to own</h3><p>Every model here trains on one laptop and runs on any device. The code and weights are plain files you can retrain.</p></div>
+  </section>
+
+  <footer>Experimental research code. Each model's results are measured on held-out puzzles and listed on its page.</footer>
+</div>
+
+<script src="settle.js"></script>
+<script>
+(function () {
+  const css = getComputedStyle(document.documentElement), tok = (k) => css.getPropertyValue(k).trim();
+  function fit(c) { const d = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight; c.width = w * d; c.height = h * d; const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); return [g, w, h]; }
+  function drawMaze() {
+    const [g, w, h] = fit(document.getElementById("mazeThumb"));
+    const n = 7, m = Settle.makeMaze(n, Settle.mulberry32(20260926)), S = m.S, cs = Math.floor(h / S), ox = Math.round((w - cs * S) / 2), oy = Math.round((h - cs * S) / 2);
+    const path = Settle.shortestPath(m.grid, S, m.start, m.goal);
+    for (let i = 0; i < S * S; i++) {
+      const x = ox + (i % S) * cs, y = oy + Math.floor(i / S) * cs;
+      g.fillStyle = m.grid[i] ? tok("--wall") : path && path[i] ? tok("--belief") : tok("--surface");
+      g.fillRect(x, y, cs, cs);
+    }
+    for (const [p, c] of [[m.start, tok("--good")], [m.goal, tok("--warn")]]) {
+      g.fillStyle = c; g.beginPath(); g.arc(ox + (p[1] + 0.5) * cs, oy + (p[0] + 0.5) * cs, cs * 0.36, 0, Math.PI * 2); g.fill();
+    }
+  }
+  function drawSudoku() {
+    const [g, w, h] = fit(document.getElementById("sudokuThumb")); const s = h - 16, ox = (w - s) / 2, oy = 8, cs = s / 9;
+    const grid = "598461273731528496264397581879632145426159738153874962615943827342785619987216354";
+    const given = ".9...12...3..284.6.6.....8..7....14..2..5.7....3.....2.1.9........7.5....872.6..4";
+    g.fillStyle = tok("--surface"); g.fillRect(ox, oy, s, s);
+    g.font = `500 ${Math.round(cs * 0.55)}px 'IBM Plex Mono', monospace`; g.textAlign = "center"; g.textBaseline = "middle";
+    for (let i = 0; i < 81; i++) {
+      const r = Math.floor(i / 9), c = i % 9, gv = given[i] !== ".";
+      g.fillStyle = gv ? tok("--ink") : tok("--belief"); g.globalAlpha = gv ? 1 : 0.4 + 0.6 * ((i * 37) % 10) / 10;
+      g.fillText(grid[i], ox + (c + 0.5) * cs, oy + (r + 0.54) * cs); g.globalAlpha = 1;
+    }
+    g.strokeStyle = tok("--line"); g.lineWidth = 1;
+    for (let k = 1; k < 9; k++) if (k % 3) { g.beginPath(); g.moveTo(ox + k * cs, oy); g.lineTo(ox + k * cs, oy + s); g.moveTo(ox, oy + k * cs); g.lineTo(ox + s, oy + k * cs); g.stroke(); }
+    g.strokeStyle = tok("--ink"); g.lineWidth = 2;
+    for (let k = 0; k <= 9; k += 3) { g.beginPath(); g.moveTo(ox + k * cs, oy); g.lineTo(ox + k * cs, oy + s); g.moveTo(ox, oy + k * cs); g.lineTo(ox + s, oy + k * cs); g.stroke(); }
+  }
+  const draw = () => { drawMaze(); drawSudoku(); };
+  draw(); document.fonts && document.fonts.ready.then(draw);
+  addEventListener("resize", draw);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => location.reload());
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# environments and caches
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+
+# third-party datasets (download instructions in docs/SETTLE.md)
+data/
+
+# deployment link (Vercel project ids)
+.vercel/
+site/.vercel/
+
+# local-only copies: the maintained Arena lives in arena/
+/arena.zip
+/arena.py
+/arena_results.json
+/ebm.py
+/ebm.json
+/ebm.json.opt.npz
+/gradcheck_ebm.py
+/settle.json
+
+# benchmark adapters and scratch outputs
+bd_adapter/
+bench_results.jsonl
+runs/STOP
+*.supervisor.pid

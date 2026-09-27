@@ -1,0 +1,32 @@
+step 50 loss 0.0469 0.56s/step
+step 100 loss 0.1789 0.52s/step
+step 150 loss 0.1163 0.52s/step
+step 200 loss 0.1224 0.52s/step
+step 250 loss 0.0878 0.52s/step
+step 300 loss 0.0551 0.52s/step
+step 350 loss 0.1156 0.52s/step
+step 400 loss 0.0424 0.52s/step
+step 450 loss 0.0152 0.53s/step
+step 500 loss 0.0443 0.53s/step
+step 550 loss 0.0059 0.53s/step
+step 600 loss 0.0097 0.52s/step
+step 650 loss 0.0377 0.52s/step
+step 700 loss 0.0049 0.52s/step
+step 750 loss 0.0045 0.52s/step
+step 800 loss 0.0065 0.52s/step
+step 850 loss 0.0110 0.52s/step
+step 900 loss 0.0068 0.52s/step
+step 950 loss 0.0264 0.52s/step
+step 1000 loss 0.0058 0.52s/step
+step 1050 loss 0.0018 0.52s/step
+step 1100 loss 0.0015 0.52s/step
+step 1150 loss 0.0027 0.52s/step
+step 1200 loss 0.0022 0.51s/step
+step 1250 loss 0.0022 0.51s/step
+step 1300 loss 0.0014 0.51s/step
+step 1350 loss 0.0022 0.51s/step
+step 1400 loss 0.0152 0.51s/step
+step 1450 loss 0.0020 0.51s/step
+step 1500 loss 0.0016 0.51s/step
+saved settle_nopath.json
+exit 0

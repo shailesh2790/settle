@@ -1,0 +1,7 @@
+device cuda  params 233,225  D=128 H=128 K=8  batch 128  budget 10.0 min
+   2.0 min  step   1325  loss 0.9879  batch cells 0.702  puzzles seen 10,967  val solved   0.0%  lr 9.1e-04
+   4.0 min  step   2655  loss 1.0515  batch cells 0.675  puzzles seen 22,338  val solved   2.0%  lr 6.9e-04
+   6.0 min  step   3996  loss 1.0762  batch cells 0.664  puzzles seen 33,941  val solved   4.3%  lr 4.1e-04
+   8.0 min  step   5351  loss 1.0306  batch cells 0.671  puzzles seen 45,779  val solved  11.3%  lr 1.9e-04
+  29.1 min  step   5839  loss 1.0123  batch cells 0.679  puzzles seen 50,035  val solved  13.7%  lr 1.3e-04
+saved runs/factor_10min.pt step 5839

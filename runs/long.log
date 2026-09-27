@@ -1,0 +1,98 @@
+[supervisor 16:40:06] start: 180 min budget -> runs\long.pt
+[supervisor 16:40:06] on battery: waiting for AC power
+[supervisor 16:43:36] AC power back, resuming
+device cuda  params 233,225  D=128 H=128 K=8  batch 128  budget 180.0 min, 0.0 done
+   2.0 min  step   2236  loss 1.0540  batch cells 0.670  puzzles seen 18,682  val solved   2.0% (best)  lr 1.0e-03
+   4.0 min  step   4296  loss 1.0473  batch cells 0.676  puzzles seen 36,327  val solved   4.1% (best)  lr 1.0e-03
+   6.0 min  step   6387  loss 1.0366  batch cells 0.681  puzzles seen 54,360  val solved  13.5% (best)  lr 1.0e-03
+   7.9 min  step   8461  loss 1.0649  batch cells 0.663  puzzles seen 72,356  val solved  13.7% (best)  lr 1.0e-03
+   9.9 min  step  10582  loss 1.0034  batch cells 0.689  puzzles seen 90,715  val solved  12.9%  lr 9.9e-04
+  11.9 min  step  12660  loss 1.0278  batch cells 0.680  puzzles seen 107,987  val solved   8.0%  lr 9.9e-04
+  13.9 min  step  14642  loss 1.0419  batch cells 0.675  puzzles seen 124,918  val solved  11.5%  lr 9.9e-04
+  15.9 min  step  16660  loss 1.0633  batch cells 0.670  puzzles seen 142,407  val solved  13.5%  lr 9.8e-04
+  17.8 min  step  18577  loss 1.0402  batch cells 0.672  puzzles seen 159,023  val solved  15.0% (best)  lr 9.8e-04
+  19.8 min  step  20642  loss 1.0384  batch cells 0.671  puzzles seen 176,958  val solved  16.4% (best)  lr 9.7e-04
+  21.8 min  step  22729  loss 1.0308  batch cells 0.679  puzzles seen 195,117  val solved  15.8%  lr 9.7e-04
+  23.8 min  step  25278  loss 1.0339  batch cells 0.682  puzzles seen 217,379  val solved  16.6% (best)  lr 9.6e-04
+  25.8 min  step  27604  loss 1.0086  batch cells 0.682  puzzles seen 237,729  val solved  17.2% (best)  lr 9.6e-04
+  27.7 min  step  29760  loss 1.0469  batch cells 0.676  puzzles seen 256,619  val solved  17.0%  lr 9.5e-04
+  29.7 min  step  31823  loss 1.0599  batch cells 0.673  puzzles seen 274,729  val solved  17.4% (best)  lr 9.4e-04
+  31.7 min  step  33892  loss 0.9869  batch cells 0.694  puzzles seen 292,852  val solved  16.8%  lr 9.3e-04
+  33.7 min  step  35986  loss 1.0029  batch cells 0.689  puzzles seen 311,252  val solved  17.0%  lr 9.2e-04
+  35.7 min  step  38045  loss 0.9890  batch cells 0.694  puzzles seen 329,402  val solved  17.8% (best)  lr 9.2e-04
+  37.6 min  step  40078  loss 1.0662  batch cells 0.670  puzzles seen 347,263  val solved  16.2%  lr 9.1e-04
+  39.6 min  step  42146  loss 1.0283  batch cells 0.684  puzzles seen 365,397  val solved  16.2%  lr 9.0e-04
+  41.6 min  step  44194  loss 1.0415  batch cells 0.673  puzzles seen 383,355  val solved  16.6%  lr 8.9e-04
+  43.6 min  step  46320  loss 1.0444  batch cells 0.674  puzzles seen 402,029  val solved  17.8%  lr 8.8e-04
+  45.6 min  step  48392  loss 1.0175  batch cells 0.681  puzzles seen 420,247  val solved  16.8%  lr 8.7e-04
+  47.5 min  step  50512  loss 0.9738  batch cells 0.698  puzzles seen 438,926  val solved  17.4%  lr 8.5e-04
+  49.5 min  step  52599  loss 0.9652  batch cells 0.698  puzzles seen 457,334  val solved  18.9% (best)  lr 8.4e-04
+  51.5 min  step  54399  loss 0.9907  batch cells 0.690  puzzles seen 473,197  val solved  18.6%  lr 8.3e-04
+  53.5 min  step  56204  loss 0.9912  batch cells 0.692  puzzles seen 489,073  val solved  17.6%  lr 8.2e-04
+  55.5 min  step  58056  loss 0.9899  batch cells 0.696  puzzles seen 505,493  val solved  19.1% (best)  lr 8.1e-04
+  57.4 min  step  60143  loss 0.9840  batch cells 0.695  puzzles seen 523,891  val solved  19.5% (best)  lr 7.9e-04
+[supervisor 03:59:39] start: 180 min budget -> runs\long.pt
+device cuda  params 233,225  D=128 H=128 K=8  batch 128  budget 180.0 min, 57.4 done  (resumed at step 60143)
+  59.4 min  step  63079  loss 0.9855  batch cells 0.700  puzzles seen 26,102  val solved  18.9%  lr 7.8e-04
+  61.4 min  step  66003  loss 1.0099  batch cells 0.689  puzzles seen 52,043  val solved  18.9%  lr 7.7e-04
+  63.4 min  step  68909  loss 1.0231  batch cells 0.684  puzzles seen 77,856  val solved  20.5% (best)  lr 7.5e-04
+  65.4 min  step  71813  loss 0.9836  batch cells 0.691  puzzles seen 103,689  val solved  19.7%  lr 7.4e-04
+  67.4 min  step  74703  loss 1.0289  batch cells 0.702  puzzles seen 129,436  val solved  20.3%  lr 7.2e-04
+  69.4 min  step  77594  loss 0.9673  batch cells 0.704  puzzles seen 155,218  val solved  20.1%  lr 7.1e-04
+  71.3 min  step  80469  loss 0.9940  batch cells 0.697  puzzles seen 180,881  val solved  20.1%  lr 6.9e-04
+  73.3 min  step  83346  loss 1.0370  batch cells 0.680  puzzles seen 206,743  val solved  19.3%  lr 6.8e-04
+  75.3 min  step  86211  loss 0.9896  batch cells 0.697  puzzles seen 232,320  val solved  20.7% (best)  lr 6.6e-04
+  77.3 min  step  89064  loss 0.9687  batch cells 0.703  puzzles seen 257,990  val solved  20.9% (best)  lr 6.5e-04
+  79.3 min  step  91901  loss 0.9824  batch cells 0.707  puzzles seen 283,607  val solved  21.3% (best)  lr 6.3e-04
+  81.3 min  step  94736  loss 1.0144  batch cells 0.690  puzzles seen 309,215  val solved  20.9%  lr 6.2e-04
+  83.2 min  step  97573  loss 0.9897  batch cells 0.698  puzzles seen 334,962  val solved  20.9%  lr 6.0e-04
+  85.2 min  step 100404  loss 0.9855  batch cells 0.703  puzzles seen 360,945  val solved  22.5% (best)  lr 5.9e-04
+  87.2 min  step 103225  loss 0.9956  batch cells 0.690  puzzles seen 386,766  val solved  22.1%  lr 5.7e-04
+  89.2 min  step 106055  loss 0.9599  batch cells 0.712  puzzles seen 412,862  val solved  21.7%  lr 5.6e-04
+  91.2 min  step 108871  loss 0.9460  batch cells 0.715  puzzles seen 438,818  val solved  22.3%  lr 5.4e-04
+  93.2 min  step 111692  loss 0.9250  batch cells 0.719  puzzles seen 464,890  val solved  22.3%  lr 5.3e-04
+  95.1 min  step 114516  loss 0.9408  batch cells 0.719  puzzles seen 491,140  val solved  22.9% (best)  lr 5.1e-04
+  97.1 min  step 117326  loss 0.9273  batch cells 0.713  puzzles seen 517,243  val solved  23.2% (best)  lr 4.9e-04
+  99.1 min  step 120142  loss 0.9785  batch cells 0.703  puzzles seen 543,625  val solved  26.2% (best)  lr 4.8e-04
+ 101.1 min  step 122952  loss 0.9297  batch cells 0.722  puzzles seen 569,973  val solved  26.8% (best)  lr 4.6e-04
+ 103.1 min  step 125758  loss 0.9436  batch cells 0.710  puzzles seen 596,727  val solved  28.7% (best)  lr 4.5e-04
+ 105.1 min  step 128583  loss 0.9305  batch cells 0.727  puzzles seen 623,746  val solved  33.0% (best)  lr 4.3e-04
+ 107.1 min  step 131385  loss 0.9448  batch cells 0.713  puzzles seen 650,922  val solved  35.7% (best)  lr 4.2e-04
+ 109.0 min  step 134200  loss 0.9283  batch cells 0.726  puzzles seen 678,414  val solved  37.3% (best)  lr 4.0e-04
+ 111.0 min  step 137008  loss 0.9532  batch cells 0.712  puzzles seen 706,226  val solved  38.9% (best)  lr 3.9e-04
+ 113.0 min  step 139820  loss 0.9491  batch cells 0.718  puzzles seen 734,611  val solved  39.1% (best)  lr 3.7e-04
+ 115.0 min  step 142633  loss 0.9099  batch cells 0.727  puzzles seen 762,555  val solved  40.8% (best)  lr 3.6e-04
+ 117.0 min  step 145434  loss 0.9545  batch cells 0.712  puzzles seen 790,890  val solved  42.8% (best)  lr 3.5e-04
+ 119.0 min  step 148239  loss 0.9231  batch cells 0.720  puzzles seen 819,551  val solved  43.2% (best)  lr 3.3e-04
+ 121.0 min  step 151045  loss 0.9086  batch cells 0.728  puzzles seen 848,812  val solved  43.6% (best)  lr 3.2e-04
+ 122.9 min  step 153858  loss 0.9882  batch cells 0.701  puzzles seen 878,063  val solved  44.5% (best)  lr 3.1e-04
+ 124.9 min  step 156672  loss 0.9136  batch cells 0.723  puzzles seen 907,123  val solved  44.7% (best)  lr 2.9e-04
+ 126.9 min  step 159479  loss 0.8975  batch cells 0.725  puzzles seen 936,548  val solved  45.9% (best)  lr 2.8e-04
+ 128.9 min  step 162290  loss 0.9300  batch cells 0.717  puzzles seen 966,220  val solved  47.9% (best)  lr 2.7e-04
+ 130.9 min  step 165101  loss 0.9540  batch cells 0.713  puzzles seen 996,389  val solved  48.6% (best)  lr 2.6e-04
+ 132.9 min  step 167908  loss 0.9056  batch cells 0.725  puzzles seen 1,026,563  val solved  49.4% (best)  lr 2.4e-04
+ 134.9 min  step 170710  loss 0.9448  batch cells 0.715  puzzles seen 1,056,911  val solved  49.0%  lr 2.3e-04
+ 136.8 min  step 173516  loss 0.9764  batch cells 0.705  puzzles seen 1,087,515  val solved  49.8% (best)  lr 2.2e-04
+ 138.8 min  step 176319  loss 0.9834  batch cells 0.708  puzzles seen 1,118,310  val solved  49.8%  lr 2.1e-04
+ 140.8 min  step 179125  loss 0.9775  batch cells 0.703  puzzles seen 1,149,368  val solved  49.0%  lr 2.0e-04
+ 142.8 min  step 181922  loss 0.9965  batch cells 0.698  puzzles seen 1,180,341  val solved  50.4% (best)  lr 1.9e-04
+ 144.8 min  step 184737  loss 0.9305  batch cells 0.717  puzzles seen 1,211,671  val solved  50.0%  lr 1.8e-04
+ 146.8 min  step 187540  loss 0.8927  batch cells 0.726  puzzles seen 1,243,157  val solved  48.6%  lr 1.7e-04
+ 148.8 min  step 190342  loss 1.0191  batch cells 0.680  puzzles seen 1,274,754  val solved  52.5% (best)  lr 1.7e-04
+ 150.8 min  step 193147  loss 0.9115  batch cells 0.723  puzzles seen 1,306,762  val solved  52.3%  lr 1.6e-04
+ 152.7 min  step 195964  loss 0.9108  batch cells 0.719  puzzles seen 1,338,873  val solved  51.0%  lr 1.5e-04
+ 154.7 min  step 198771  loss 0.9342  batch cells 0.716  puzzles seen 1,371,082  val solved  52.7% (best)  lr 1.4e-04
+ 156.7 min  step 201578  loss 0.8807  batch cells 0.731  puzzles seen 1,403,373  val solved  52.5%  lr 1.4e-04
+ 158.7 min  step 204384  loss 0.9166  batch cells 0.724  puzzles seen 1,435,671  val solved  51.8%  lr 1.3e-04
+ 160.7 min  step 207190  loss 0.9004  batch cells 0.735  puzzles seen 1,468,049  val solved  50.6%  lr 1.3e-04
+ 162.7 min  step 209994  loss 0.9265  batch cells 0.719  puzzles seen 1,500,474  val solved  51.4%  lr 1.2e-04
+ 164.7 min  step 212801  loss 0.9582  batch cells 0.705  puzzles seen 1,533,140  val solved  52.5%  lr 1.2e-04
+ 166.7 min  step 215606  loss 0.9450  batch cells 0.705  puzzles seen 1,565,712  val solved  53.1% (best)  lr 1.1e-04
+ 168.6 min  step 218412  loss 0.9061  batch cells 0.731  puzzles seen 1,598,273  val solved  51.6%  lr 1.1e-04
+ 170.6 min  step 221205  loss 0.9866  batch cells 0.701  puzzles seen 1,630,900  val solved  52.3%  lr 1.1e-04
+ 172.6 min  step 224000  loss 0.9011  batch cells 0.722  puzzles seen 1,664,740  val solved  51.8%  lr 1.0e-04
+ 174.6 min  step 226810  loss 0.8180  batch cells 0.754  puzzles seen 1,698,682  val solved  52.3%  lr 1.0e-04
+ 176.6 min  step 229609  loss 0.8699  batch cells 0.740  puzzles seen 1,732,817  val solved  51.4%  lr 1.0e-04
+ 178.6 min  step 232414  loss 0.9534  batch cells 0.708  puzzles seen 1,767,145  val solved  52.9%  lr 1.0e-04
+finished: 180.0 min trained, step 234413, best val 53.1% -> runs\long_best.pt
+[supervisor 06:03:12] training finished

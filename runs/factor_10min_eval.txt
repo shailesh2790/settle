@@ -1,0 +1,9 @@
+model runs/factor_10min.pt: 233,225 params, trained 5839 steps
+Sudoku-Extreme test, 200 random puzzles, up to 128 thinking steps, 10.9 ms/puzzle on cuda
+  thinking only: solved 7.5%   mean steps when solved 35
+  + verified search (beam 32): solved 38.0%   1.66 s per searched puzzle
+          difficulty   count  thinking   +search
+         no guessing      28     50.0%     96.4%
+     1-10 backtracks      45      2.2%     51.1%
+    11-50 backtracks     107      0.0%     23.4%
+      >50 backtracks      20      0.0%      5.0%

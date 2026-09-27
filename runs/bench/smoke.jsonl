@@ -1,0 +1,10 @@
+{"model": "ar", "threshold": null, "task": "mbpp/11", "pass": false, "pass_after_repair": false, "repair_rounds": 0, "new_tokens": 132, "secs": 12.359}
+{"model": "ar", "threshold": null, "task": "mbpp/12", "pass": false, "pass_after_repair": false, "repair_rounds": 0, "new_tokens": 54, "secs": 4.887}
+{"model": "ar", "threshold": null, "task": "mbpp/14", "pass": true, "pass_after_repair": true, "repair_rounds": 0, "new_tokens": 145, "secs": 13.371}
+{"model": "ar", "threshold": null, "task": "mbpp/16", "pass": false, "pass_after_repair": false, "repair_rounds": 0, "new_tokens": 47, "secs": 4.145}
+{"model": "ar", "threshold": null, "task": "mbpp/17", "pass": true, "pass_after_repair": true, "repair_rounds": 0, "new_tokens": 19, "secs": 1.913}
+{"model": "diff", "threshold": 0.9, "task": "mbpp/11", "pass": false, "pass_after_repair": false, "repair_rounds": 0, "new_tokens": 184, "secs": 9.267}
+{"model": "diff", "threshold": 0.9, "task": "mbpp/12", "pass": true, "pass_after_repair": true, "repair_rounds": 0, "new_tokens": 109, "secs": 4.99}
+{"model": "diff", "threshold": 0.9, "task": "mbpp/14", "pass": true, "pass_after_repair": true, "repair_rounds": 0, "new_tokens": 156, "secs": 6.435}
+{"model": "diff", "threshold": 0.9, "task": "mbpp/16", "pass": false, "pass_after_repair": false, "repair_rounds": 0, "new_tokens": 178, "secs": 7.592}
+{"model": "diff", "threshold": 0.9, "task": "mbpp/17", "pass": true, "pass_after_repair": true, "repair_rounds": 0, "new_tokens": 68, "secs": 3.067}

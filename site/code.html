@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Settle Code Benchmark</title>
+<meta name="description" content="Standard vs block-diffusion 1.5B code models on a laptop GPU: 421 HumanEval and MBPP tasks, tested in a sandbox.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+  :root { --ar: #2F55D4; --diff: #B8740A; --both: #5A6878; --neither: #D3DAE3; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ar: #6482EE; --diff: #C4852A; --both: #8B98A8; --neither: #2B3747; } }
+  :root[data-theme="dark"] { --ar: #6482EE; --diff: #C4852A; --both: #8B98A8; --neither: #2B3747; }
+
+  .verdict { display: grid; gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+  .verdict-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .verdict-head h2 { margin: 0; }
+  .pill { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; padding: 7px 10px; border-radius: 999px; border: 1px solid currentColor; display: inline-flex; gap: 6px; align-items: center; }
+  .pill.fail { color: var(--warn); } .pill.pass { color: var(--good); } .pill.mixed { color: var(--muted); }
+  .criteria { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 28px; }
+  .criterion { display: grid; gap: 6px; }
+  .criterion .row1 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .criterion b { font: 500 26px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+  .criterion p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+  .sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; }
+  table.cmp td, table.cmp th { white-space: nowrap; }
+  table.cmp td.model { display: flex; align-items: center; gap: 8px; }
+  table.cmp tr.total td { border-top: 2px solid var(--line); }
+  .better { font-weight: 600; }
+
+  .chart { display: grid; gap: 12px; }
+  .bar { display: flex; height: 44px; gap: 2px; border-radius: 4px; overflow: visible; }
+  .seg { position: relative; border: 0; padding: 0; cursor: pointer; min-width: 4px; display: grid; place-items: center; color: #fff; font: 500 13px/1 var(--mono); }
+  .seg:first-child { border-radius: 4px 0 0 4px; } .seg:last-child { border-radius: 0 4px 4px 0; }
+  .seg.neither { color: var(--ink); }
+  .seg[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; z-index: 1; }
+  .seg:focus-visible { outline: 2px solid var(--belief); outline-offset: 3px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13.5px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend b { font-family: var(--mono); font-weight: 500; }
+  .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--ground); font-size: 12.5px; line-height: 1.4; padding: 7px 9px; border-radius: 5px; max-width: 260px; z-index: 10; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; }
+  .filters .group { min-width: 0; }
+  .filters .seg-ctl { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); flex-wrap: wrap; }
+  .filters .seg-ctl button { border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--ink); font: 500 13px/1.1 var(--body); padding: 8px 11px; cursor: pointer; }
+  .filters .seg-ctl button:first-child { border-left: 0; }
+  .filters .seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--ground); }
+  input[type="search"] { font: 14px/1.2 var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: min(280px, 100%); }
+  .count { font-size: 13px; color: var(--muted); }
+  .tasks { border-top: 1px solid var(--line); }
+  .task { display: grid; grid-template-columns: 116px minmax(0, 1fr) 128px 128px; gap: 4px 14px; padding: 9px 0; border-bottom: 1px solid var(--line); align-items: baseline; font-size: 14px; }
+  .task .id { font: 12.5px/1.3 var(--mono); color: var(--muted); }
+  .task .desc { overflow-wrap: anywhere; }
+  .res { font: 12px/1.35 var(--mono); font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 1px; white-space: nowrap; }
+  .res .mark { font-weight: 600; font-family: var(--body); }
+  .res.pass .mark { color: var(--good); } .res.fail .mark { color: var(--warn); }
+  .res .who { color: var(--muted); }
+  .taskhead { font: 600 11px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
+  @media (max-width: 720px) {
+    .task, .taskhead { grid-template-columns: 1fr 1fr; }
+    .task .desc { grid-column: 1 / -1; order: -1; }
+    .taskhead .h-desc, .taskhead .h-id { display: none; }
+  }
+  .more { margin-top: 12px; }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 40px; border-top: 1px solid var(--line); padding-top: 28px; }
+  .notes p, .notes li { font-size: 14.5px; }
+  .notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Site">
+  <a class="brand" href="./">Settle</a>
+  <a class="link" href="maze.html">Maze</a>
+  <a class="link" href="sudoku.html">Sudoku</a>
+  <a class="link" href="code.html" aria-current="page">Code</a>
+</nav>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>Code Benchmark</h1>
+    <p class="lede">Can a <b>block-diffusion</b> model, which writes several tokens at once, make a laptop a faster coder without losing accuracy? Two 1.5B models from the same parent, 421 coding tasks, one laptop GPU. Every answer was run against the task's tests in a locked sandbox.</p>
+  </header>
+
+  <section class="verdict" aria-labelledby="verdict-h">
+    <div class="verdict-head">
+      <h2 id="verdict-h">Stage 1 decision</h2>
+      <span class="pill fail" id="gatePill">✕ Gate not met</span>
+    </div>
+    <div class="criteria" id="criteria"></div>
+    <p class="hint" id="verdictNote" style="max-width:none"></p>
+  </section>
+
+  <section style="display:grid;gap:14px" aria-labelledby="cmp-h">
+    <h2 id="cmp-h">Results by benchmark</h2>
+    <div class="tablewrap">
+      <table class="cmp" id="cmpTable">
+        <thead><tr><th>Benchmark</th><th>Model</th><th>Passed</th><th>Seconds per task</th><th>Tokens per answer</th><th>Tokens/s</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="hint">Bold marks the better model per column. Tokens/s flatters diffusion because its answers are longer. Seconds per task is what you wait.</p>
+  </section>
+
+  <section class="chart" aria-labelledby="pair-h">
+    <h2 id="pair-h" style="margin:0">Same task, both models</h2>
+    <p class="hint" style="max-width:64ch">Each of the 421 tasks was given to both models. Click a segment to list those tasks below.</p>
+    <div class="bar" id="pairBar" role="group" aria-label="Paired outcomes"></div>
+    <div class="legend" id="pairLegend"></div>
+  </section>
+
+  <section style="display:grid;gap:14px" aria-labelledby="tasks-h">
+    <h2 id="tasks-h" style="margin:0">Every task</h2>
+    <div class="filters">
+      <div class="group"><span class="label" id="f-out-l">Outcome</span><div class="seg-ctl" role="group" aria-labelledby="f-out-l" id="fOutcome"></div></div>
+      <div class="group"><span class="label" id="f-b-l">Benchmark</span><div class="seg-ctl" role="group" aria-labelledby="f-b-l" id="fBench"></div></div>
+      <div class="group"><label class="label" for="q">Search</label><input type="search" id="q" placeholder="e.g. palindrome, HumanEval/12"></div>
+    </div>
+    <span class="count" id="count" aria-live="polite"></span>
+    <div>
+      <div class="task taskhead"><span class="h-id">Task</span><span class="h-desc">What it asks</span><span><i class="sw" style="background:var(--ar)"></i> Standard</span><span><i class="sw" style="background:var(--diff)"></i> Diffusion</span></div>
+      <div class="tasks" id="tasks"></div>
+      <button class="btn ghost more" id="more" hidden>Show more</button>
+    </div>
+  </section>
+
+  <section class="verdict" aria-labelledby="s2-h">
+    <div class="verdict-head">
+      <h2 id="s2-h">Stage 2: verify and retry</h2>
+      <span class="pill fail">✕ Gate not met</span>
+    </div>
+    <p style="margin:0;max-width:70ch">The standard model answers each of the 257 MBPP tasks. If its answer fails the one test a user can see, the error message goes back to the model for up to two more tries. Hidden tests decide whether the task is really solved.</p>
+    <div class="criteria">
+      <div class="criterion"><div class="row1"><span class="label">Gain from retrying</span><span class="pill fail">✕ Not met</span></div>
+        <b>+2.7 pts</b><p>50.2% on the first try, 52.9% after repair. The gate asked for +10 points at similar time; repair tripled the time per task (5.0 s to 15.1 s).</p></div>
+      <div class="criterion"><div class="row1"><span class="label">Repairs that worked</span><span class="pill mixed">Low</span></div>
+        <b>7 of 113</b><p>Only 9 retries made the visible test pass, and 7 of those passed the hidden tests. No retry broke an answer that already worked. This 1.5B model mostly cannot use an error message to fix its code.</p></div>
+    </div>
+    <div class="tablewrap">
+      <table class="cmp">
+        <thead><tr><th>The visible test says</th><th>Answers</th><th>Hidden tests pass</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Pass</td><td class="num">144</td><td class="num">129 (90%)</td><td>1 in 10 accepted answers is still wrong</td></tr>
+          <tr><td>Fail</td><td class="num">113</td><td class="num">0 (0%)</td><td>A visible failure is always a real failure</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" style="max-width:none">The visible test is a useful but leaky judge. Anything that retries or searches on code while trusting it inherits that 10% error. Sudoku's rule check, by contrast, is exact.</p>
+  </section>
+
+  <section class="notes">
+    <div>
+      <h2>How it was measured</h2>
+      <ul id="settings"></ul>
+    </div>
+    <div>
+      <h2>What this means</h2>
+      <p>The diffusion model is faster per token, but it writes longer answers and solves fewer tasks. On a laptop at batch size 1, it does not pay off yet. Both models also leave the GPU mostly idle, because Python overhead per step dominates.</p>
+      <p><b>Stage 2</b> tested checking and retrying: it added 2.7 points for three times the time, because the model was never trained to use feedback. The next step is to train it on its own verified work: sample several answers, keep the ones that pass, and fine-tune on those. That is how the Sudoku and maze models learned to be reliable without more data.</p>
+    </div>
+  </section>
+
+  <footer>Results from <code>bench_decode.py</code>, 2026-09-27. Per-task data: <a href="data/stage1.json">data/stage1.json</a>.</footer>
+</div>
+
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const NAME = { ar: "Standard", diff: "Diffusion" };
+  let d;
+  try { d = await (await fetch("data/stage1.json")).json(); }
+  catch (e) { $("verdictNote").textContent = "Could not load the results file (data/stage1.json)."; return; }
+  const S = d.summary, P = d.paired, A = S.All;
+
+  // ---------------------------------------------------------------- verdict
+  const gap = +(A.diff.pass - A.ar.pass).toFixed(1), speed = A.diff.tok_s / A.ar.tok_s, wall = A.ar.secs / A.diff.secs;
+  const accOk = gap >= -5, speedOk = speed >= 2 - 1e-9;
+  const crit = [
+    [accOk, "Accuracy", `${gap > 0 ? "+" : ""}${gap} pts`, `Diffusion passes ${A.diff.pass}% vs ${A.ar.pass}%. The gate allows at most 5 points lower. The gap is not noise: ${P.ar_only} tasks pass only with the standard model and ${P.diff_only} only with diffusion (McNemar z = ${P.mcnemar_z}).`],
+    [speedOk, "Speed (tokens/s)", `${speed.toFixed(1)}×`, `Needs at least 2×. It is ${A.diff.tok_s} vs ${A.ar.tok_s} tokens/s, but in time per task diffusion is only ${wall.toFixed(2)}× faster overall: ${(S.HumanEval.ar.secs / S.HumanEval.diff.secs).toFixed(1)}× on HumanEval and ${Math.round((S.MBPP.diff.secs / S.MBPP.ar.secs - 1) * 100)}% slower on MBPP.`],
+  ];
+  $("criteria").innerHTML = crit.map(([ok, k, v, note]) => `
+    <div class="criterion"><div class="row1"><span class="label">${k}</span><span class="pill ${ok ? "pass" : "fail"}">${ok ? "✓ Met" : "✕ Not met"}</span></div>
+    <b>${v}</b><p>${note}</p></div>`).join("");
+  const gate = accOk && speedOk;
+  $("gatePill").className = "pill " + (gate ? "pass" : "fail"); $("gatePill").textContent = gate ? "✓ Gate met" : "✕ Gate not met";
+  $("verdictNote").textContent = gate ? "Build on block diffusion." : "Don't build on block diffusion yet. Skip Stage 3 (training your own conversion) and test the repair loop (Stage 2) instead.";
+
+  // ---------------------------------------------------------------- comparison table
+  const rows = [];
+  for (const b of ["HumanEval", "MBPP", "All"]) {
+    const s = S[b], best = {
+      pass: s.ar.pass >= s.diff.pass ? "ar" : "diff", secs: s.ar.secs <= s.diff.secs ? "ar" : "diff",
+      tokens: s.ar.tokens <= s.diff.tokens ? "ar" : "diff", tok_s: s.ar.tok_s >= s.diff.tok_s ? "ar" : "diff" };
+    ["ar", "diff"].forEach((m, k) => rows.push(`<tr class="${b === "All" ? "total" : ""}">
+      <td>${k === 0 ? (b === "All" ? `All (${s.ar.n})` : `${b} (${s.ar.n})`) : ""}</td>
+      <td class="model"><i class="sw" style="background:var(--${m})"></i>${NAME[m]}</td>
+      ${["pass", "secs", "tokens", "tok_s"].map((c) => `<td class="num ${best[c] === m ? "better" : ""}">${c === "pass" ? s[m][c] + "%" : s[m][c]}</td>`).join("")}</tr>`));
+  }
+  $("cmpTable").tBodies[0].innerHTML = rows.join("");
+
+  // ---------------------------------------------------------------- paired outcome bar
+  const OUT = [
+    { key: "both", label: "Both pass", n: P.both, color: "var(--both)" },
+    { key: "ar_only", label: "Only standard passes", n: P.ar_only, color: "var(--ar)" },
+    { key: "diff_only", label: "Only diffusion passes", n: P.diff_only, color: "var(--diff)" },
+    { key: "neither", label: "Neither passes", n: P.neither, color: "var(--neither)" },
+  ];
+  const tip = $("tip");
+  $("pairBar").innerHTML = OUT.map((o) => `<button class="seg ${o.key === "neither" ? "neither" : ""}" data-k="${o.key}" aria-pressed="false"
+     style="flex:${o.n} 1 0;background:${o.color}" aria-label="${o.label}: ${o.n} of ${P.n} tasks">${o.n / P.n > 0.07 ? o.n : ""}</button>`).join("");
+  $("pairLegend").innerHTML = OUT.map((o) => `<span><i class="sw" style="background:${o.color}${o.key === "neither" ? ";outline:1px solid var(--muted);outline-offset:-1px" : ""}"></i>${o.label} <b>${o.n}</b></span>`).join("");
+  for (const b of $("pairBar").children) {
+    const o = OUT.find((x) => x.key === b.dataset.k);
+    b.addEventListener("pointermove", (e) => { tip.hidden = false; tip.textContent = `${o.label}: ${o.n} tasks (${(o.n / P.n * 100).toFixed(0)}% of ${P.n})`; tip.style.left = Math.min(e.clientX + 12, innerWidth - 270) + "px"; tip.style.top = e.clientY + 14 + "px"; });
+    b.addEventListener("pointerleave", () => (tip.hidden = true));
+    b.addEventListener("click", () => { outcome = outcome === o.key ? "all" : o.key; press("fOutcome", outcome); render(true); $("tasks-h").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); });
+  }
+
+  // ---------------------------------------------------------------- task explorer
+  let outcome = "all", bench = "all", query = "", shown = 60;
+  const OUTF = [["all", "All"], ["both", "Both pass"], ["ar_only", "Standard only"], ["diff_only", "Diffusion only"], ["neither", "Neither"]];
+  $("fOutcome").innerHTML = OUTF.map(([v, l]) => `<button data-v="${v}">${l}</button>`).join("");
+  $("fBench").innerHTML = [["all", "All"], ["HumanEval", "HumanEval"], ["MBPP", "MBPP"]].map(([v, l]) => `<button data-v="${v}">${l}</button>`).join("");
+  function press(id, v) {
+    for (const b of $(id).children) b.setAttribute("aria-pressed", String(b.dataset.v === v));
+    if (id === "fOutcome") for (const s of $("pairBar").children) s.setAttribute("aria-pressed", String(s.dataset.k === v));
+  }
+  const kind = (t) => t.ar.pass && t.diff.pass ? "both" : t.ar.pass ? "ar_only" : t.diff.pass ? "diff_only" : "neither";
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const cell = (r, m) => r ? `<span class="res ${r.pass ? "pass" : "fail"}"><span class="mark">${r.pass ? "✓ pass" : "✕ fail"}</span><span class="who">${r.secs}s · ${r.tokens} tok</span></span>` : "<span class='res'>–</span>";
+  function render(reset) {
+    if (reset) shown = 60;
+    const q = query.trim().toLowerCase();
+    const list = d.tasks.filter((t) => (outcome === "all" || kind(t) === outcome) && (bench === "all" || t.bench === bench) &&
+      (!q || t.id.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q)));
+    $("count").textContent = `Showing ${Math.min(shown, list.length)} of ${list.length} matching tasks (${d.tasks.length} total)`;
+    $("tasks").innerHTML = list.slice(0, shown).map((t) => `<div class="task"><span class="id">${t.id}</span><span class="desc">${esc(t.desc)}</span>${cell(t.ar)}${cell(t.diff)}</div>`).join("")
+      || `<p class="hint" style="padding:14px 0">No tasks match. Clear the search or pick another outcome.</p>`;
+    $("more").hidden = list.length <= shown;
+  }
+  $("fOutcome").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; outcome = b.dataset.v; press("fOutcome", outcome); render(true); });
+  $("fBench").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; bench = b.dataset.v; press("fBench", bench); render(true); });
+  $("q").addEventListener("input", (e) => { query = e.target.value; render(true); });
+  $("more").addEventListener("click", () => { shown += 120; render(false); });
+  press("fOutcome", outcome); press("fBench", bench); render(true);
+
+  $("settings").innerHTML = [
+    `<b>Standard:</b> ${d.models.ar}`, `<b>Diffusion:</b> ${d.models.diff}. Same parent model, converted with about 1B tokens.`,
+    ...d.settings.split("; ").map((s) => s.charAt(0).toUpperCase() + s.slice(1) + "."),
+    "Pass means every hidden test passed on the first answer (pass@1).",
+  ].map((s) => `<li>${s}</li>`).join("");
+})();
+</script>
+</body>
+</html>

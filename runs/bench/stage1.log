@@ -1,0 +1,36 @@
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\bench_decode.py", line 104, in <module>
+    s = run(kind, tok, model, tasks, args, th, log)
+  File "C:\MLProject\SETTLE\bench_decode.py", line 59, in run
+    ok, err = check(task, code)
+  File "C:\MLProject\SETTLE\common.py", line 108, in check
+    return run_program(build_program(task, code, visible_only), timeout)
+  File "C:\MLProject\SETTLE\common.py", line 89, in run_program
+    p = subprocess.run(["docker", "exec", "-i", "-w", "/tmp", SANDBOX_NAME, "timeout", "-s", "KILL", str(t),
+  File "C:\Users\Shailesh\anaconda3\lib\subprocess.py", line 507, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "C:\Users\Shailesh\anaconda3\lib\subprocess.py", line 1134, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "C:\Users\Shailesh\anaconda3\lib\subprocess.py", line 1502, in _communicate
+    self._stdin_write(input)
+  File "C:\Users\Shailesh\anaconda3\lib\subprocess.py", line 1068, in _stdin_write
+    self.stdin.write(input)
+  File "C:\Users\Shailesh\anaconda3\lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode character '\u279e' in position 913: character maps to <undefined>
+exit 1
+
+=== relaunch 22:50 after UTF-8 fix ===
+resuming: 74 task results already in runs\bench\stage1.jsonl
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+model  thresh  pass@1  +repair   tok/s  s/task  VRAM GB
+ar          -   50.4%    50.4%    14.3    8.92     3.15
+diff      0.9   40.4%    40.4%    28.6    7.63     3.25
+(some rows resumed from an earlier run; VRAM is peak for this run only)
+
+Decision gate: diffusion pass@1 within 5 points of AR AND >= 2x tokens/s at batch 1 -> build on it.
+exit 0

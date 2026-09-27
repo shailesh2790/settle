@@ -1,0 +1,25 @@
+device cuda  params 184,073  D=128 H=128 K=8  batch 128  budget 60.0 min
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\settle_graph.py", line 244, in <module>
+    amp = dict(device_type="cuda", dtype=torch.bfloat16) if dev == "cuda" else dict(device_type="cpu", enabled=False)
+  File "C:\MLProject\SETTLE\settle_graph.py", line 160, in train
+    solved or has had `max_segments` segments, then it is refilled with a fresh augmented puzzle."""
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\_tensor.py", line 647, in backward
+    torch.autograd.backward(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\autograd\__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\autograd\graph.py", line 829, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+torch.AcceleratorError: CUDA error: out of memory
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[resilient] run exited with an error, resuming in 20s
+device cuda  params 184,073  D=128 H=128 K=8  batch 128  budget 59.0 min
+   2.0 min  step   1929  loss 1.0736  batch cells 0.678  puzzles seen 15,883  val solved   2.0%  lr 1.0e-03
+   4.0 min  step   3798  loss 1.0592  batch cells 0.677  puzzles seen 31,443  val solved  13.1%  lr 9.9e-04
+   6.1 min  step   4695  loss 1.0268  batch cells 0.688  puzzles seen 38,985  val solved  14.5%  lr 9.8e-04
+   8.1 min  step   5547  loss 1.0694  batch cells 0.677  puzzles seen 46,115  val solved  13.3%  lr 9.6e-04
+  10.1 min  step   6442  loss 1.0563  batch cells 0.683  puzzles seen 53,616  val solved  13.9%  lr 9.4e-04
+[resilient] run exited with an error, resuming in 20s
