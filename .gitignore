@@ -26,3 +26,6 @@ bd_adapter/
 bench_results.jsonl
 runs/STOP
 *.supervisor.pid
+
+# fine-tuned LoRA adapters (large; reproducible from runs/phase2/collect_*.jsonl)
+runs/phase2/adapter_*/

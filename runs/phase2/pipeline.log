@@ -1,0 +1,195 @@
+[09-28 12:35] START baseline: best of 8 on the test set
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+25/257
+50/257
+75/257
+100/257
+125/257
+150/257
+175/257
+200/257
+225/257
+250/257
+
+runs\phase2\bestof_base.jsonl: 257 test tasks, k=8, adapter=None
+  greedy answer                            50.2%   5.4 s/task
+  one sampled answer                       45.1%
+  best of 8, chosen by the visible test      70.8%   14.7 s/task
+  any of 8 passes (oracle ceiling)          74.7%
+[09-28 14:07] DONE baseline: best of 8 on the test set
+[09-28 14:07] START collect: verified solutions to 464 training problems
+25/464
+50/464
+75/464
+100/464
+125/464
+150/464
+175/464
+200/464
+225/464
+250/464
+275/464
+300/464
+325/464
+350/464
+375/464
+400/464
+425/464
+450/464
+
+runs\phase2\collect_r1.jsonl: 464 training problems, 325 with at least one verified solution (70.0%), 972 verified solutions
+[09-28 16:20] DONE collect: verified solutions to 464 training problems
+[09-28 16:20] START train: LoRA on round-1 verified solutions
+972 verified examples from 1 file(s)
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: 7802f23d-b841-47b4-a0ff-238faf0a9637)')' thrown while requesting HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: 62ff89f4-67fc-4160-8098-3c7eb43a83ea)')' thrown while requesting HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: 4df67cff-023f-4cf0-8c5e-3a8c62f62592)')' thrown while requesting HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: 7ae3b4d5-9898-4901-bbda-b814a0d48639)')' thrown while requesting HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: bc24af97-58a7-4466-9ff2-b98d18aa55e0)')' thrown while requesting HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: e307bb7c-c0fa-4f6f-9a62-ae0fbe72e6b6)')' thrown while requesting HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connection.py", line 204, in _new_conn
+    sock = connection.create_connection(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\util\connection.py", line 60, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "C:\Users\Shailesh\anaconda3\lib\socket.py", line 954, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connectionpool.py", line 488, in _make_request
+    raise new_e
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connectionpool.py", line 464, in _make_request
+    self._validate_conn(conn)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connectionpool.py", line 1093, in _validate_conn
+    conn.connect()
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connection.py", line 759, in connect
+    self.sock = sock = self._new_conn()
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connection.py", line 211, in _new_conn
+    raise NameResolutionError(self.host, self, e) from e
+urllib3.exceptions.NameResolutionError: HTTPSConnection(host='huggingface.co', port=443): Failed to resolve 'huggingface.co' ([Errno 11001] getaddrinfo failed)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\requests\adapters.py", line 644, in send
+    resp = conn.urlopen(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\urllib3\util\retry.py", line 535, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /api/models/Qwen/Qwen2.5-1.5B-Instruct (Caused by NameResolutionError("HTTPSConnection(host='huggingface.co', port=443): Failed to resolve 'huggingface.co' ([Errno 11001] getaddrinfo failed)"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\phase2.py", line 189, in <module>
+    {"bestof": bestof, "collect": collect, "train": train, "summary": lambda a: summarize_bestof(a.out)}[a.mode](a)
+  File "C:\MLProject\SETTLE\phase2.py", line 149, in train
+    tok = AutoTokenizer.from_pretrained(BASE)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\models\auto\tokenization_auto.py", line 1156, in from_pretrained
+    return tokenizer_class.from_pretrained(pretrained_model_name_or_path, *inputs, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\tokenization_utils_base.py", line 2113, in from_pretrained
+    return cls._from_pretrained(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\tokenization_utils_base.py", line 2395, in _from_pretrained
+    tokenizer = cls._patch_mistral_regex(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\tokenization_utils_base.py", line 2442, in _patch_mistral_regex
+    _is_local or (not _is_local and is_base_mistral(pretrained_model_name_or_path))
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\tokenization_utils_base.py", line 2432, in is_base_mistral
+    model = model_info(model_id)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\huggingface_hub\utils\_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\huggingface_hub\hf_api.py", line 2660, in model_info
+    r = get_session().get(path, headers=headers, timeout=timeout, params=params)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\requests\sessions.py", line 602, in get
+    return self.request("GET", url, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\requests\sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\requests\sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\huggingface_hub\utils\_http.py", line 96, in send
+    return super().send(request, *args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\requests\adapters.py", line 677, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: (MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/Qwen/Qwen2.5-1.5B-Instruct (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: c0a3d9f2-ed94-4302-b49c-02c8e3072d14)')
+[09-28 16:25] FAILED train: LoRA on round-1 verified solutions (exit 1); rerun this script to resume
+=== resumed 09-28 16:28 (offline mode after DNS failure) ===
+[09-28 16:28] START baseline: best of 8 on the test set
+Using the latest cached version of the dataset since mbpp couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'sanitized' at C:\Users\Shailesh\.cache\huggingface\datasets\mbpp\sanitized\0.0.0\4bb6404fdc6cacfda99d4ac4205087b89d32030c (last modified on Sat Sep 26 21:05:27 2026).
+
+runs\phase2\bestof_base.jsonl: 257 test tasks, k=8, adapter=None
+  greedy answer                            50.2%   5.4 s/task
+  one sampled answer                       45.1%
+  best of 8, chosen by the visible test      70.8%   14.7 s/task
+  any of 8 passes (oracle ceiling)          74.7%
+[09-28 16:29] DONE baseline: best of 8 on the test set
+[09-28 16:29] START collect: verified solutions to 464 training problems
+Using the latest cached version of the dataset since mbpp couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'full' at C:\Users\Shailesh\.cache\huggingface\datasets\mbpp\full\0.0.0\4bb6404fdc6cacfda99d4ac4205087b89d32030c (last modified on Mon Sep 28 12:27:28 2026).
+
+runs\phase2\collect_r1.jsonl: 464 training problems, 325 with at least one verified solution (70.0%), 972 verified solutions
+[09-28 16:29] DONE collect: verified solutions to 464 training problems
+[09-28 16:29] START train: LoRA on round-1 verified solutions
+972 verified examples from 1 file(s)
+trainable params: 18,464,768 || all params: 1,562,179,072 || trainable%: 1.1820
+`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+epoch 1 step 10/243 loss 0.1866 0.9 min
+epoch 1 step 20/243 loss 0.3457 1.7 min
+epoch 1 step 30/243 loss 0.4599 2.4 min
+epoch 1 step 40/243 loss 0.5354 3.2 min
+epoch 1 step 50/243 loss 0.3389 3.9 min
+epoch 1 step 60/243 loss 0.3265 4.7 min
+epoch 1 step 70/243 loss 0.3072 5.7 min
+epoch 1 step 80/243 loss 0.5862 6.6 min
+epoch 1 step 90/243 loss 0.4299 260.5 min
+epoch 1 step 100/243 loss 0.5194 261.6 min
+epoch 1 step 110/243 loss 0.7265 262.7 min
+epoch 1 step 120/243 loss 0.2160 263.7 min
+epoch 2 step 130/243 loss 0.1653 264.8 min
+epoch 2 step 140/243 loss 0.2102 265.9 min
+epoch 2 step 150/243 loss 0.0930 266.9 min
+epoch 2 step 160/243 loss 0.2160 267.9 min
+epoch 2 step 170/243 loss 0.0861 269.2 min
+epoch 2 step 180/243 loss 0.2047 270.3 min
+epoch 2 step 190/243 loss 0.1853 271.4 min
+epoch 2 step 200/243 loss 0.1495 272.4 min
+epoch 2 step 210/243 loss 0.2300 273.4 min
+epoch 2 step 220/243 loss 0.1482 274.4 min
+epoch 2 step 230/243 loss 0.1223 275.3 min
+epoch 2 step 240/243 loss 0.1465 276.3 min
+C:\MLProject\SETTLE\.venv\lib\site-packages\peft\utils\save_and_load.py:286: UserWarning: Could not find a config file in Qwen/Qwen2.5-1.5B-Instruct - will assume that the vocabulary was not modified.
+  warnings.warn(
+saved runs\phase2\adapter_r1
+[09-28 21:06] DONE train: LoRA on round-1 verified solutions
+[09-28 21:06] START re-test: fine-tuned model on the test set
+Using the latest cached version of the dataset since mbpp couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'sanitized' at C:\Users\Shailesh\.cache\huggingface\datasets\mbpp\sanitized\0.0.0\4bb6404fdc6cacfda99d4ac4205087b89d32030c (last modified on Sat Sep 26 21:05:27 2026).
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+25/257
+50/257
+75/257
+100/257
+125/257
+150/257
+175/257
+200/257
+225/257
+250/257
+
+runs\phase2\bestof_r1.jsonl: 257 test tasks, k=8, adapter=runs\phase2\adapter_r1
+  greedy answer                            49.8%   5.8 s/task
+  one sampled answer                       48.6%
+  best of 8, chosen by the visible test      69.3%   11.0 s/task
+  any of 8 passes (oracle ceiling)          75.1%
+[09-28 22:25] DONE re-test: fine-tuned model on the test set
+[09-28 22:25] PIPELINE COMPLETE

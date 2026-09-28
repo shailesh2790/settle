@@ -80,6 +80,28 @@ The 1.5B model mostly cannot use an error message to fix its own code.
 fails, the hidden tests never pass (0/113). It is a useful but leaky check: one accepted answer in ten is
 still wrong. A search on code that trusts it will inherit that 10%.
 
+## Phase 2: learning from its own verified work (round 1)
+
+`phase2.py`, `phase2_pipeline.ps1`, results in `runs/phase2/` (2026-09-28). Training problems: MBPP train +
+validation (464, task ids 511-974); test: MBPP sanitized test (257, ids 11-510); no overlap. Qwen2.5-1.5B-Instruct
+sampled 8 answers per training problem (temperature 0.8); answers passing ALL of that problem's tests were
+kept (325 problems solved, 972 verified solutions) and used for a LoRA fine-tune (rank 16, 2 epochs).
+
+| Same 257 test tasks | Before | After | Paired change |
+|---|---|---|---|
+| One greedy answer | 50.2% | 49.8% | +25 / -26 tasks, not significant |
+| One sampled answer | 45.1% | 48.6% | +34 / -25, not significant (z = 1.2) |
+| **Best of 8, chosen by the visible test** | **70.8%** | 69.3% | +20 / -24, not significant |
+| Any of 8 passes (ceiling) | 74.7% | 75.1% | +18 / -17 |
+| Time for 8 samples | 14.7 s | 11.0 s | answers ~18% shorter |
+
+**What worked:** sampling 8 answers and submitting the first that passes the visible test adds **+20.6 points**
+over one greedy answer (50.2% -> 70.8%) for 2.7x the time, far more than repair (+2.7 points for 3x the time).
+**What did not:** one round of fine-tuning on its own verified solutions did not make the model better; it only
+made answers shorter. The verified solutions came mostly from problems it could already solve: 44% of the 972
+examples were from problems solved by 6-8 of 8 samples, only 15% from problems solved by 1-2 of 8 (the frontier),
+because easy problems yield more distinct correct answers. So they taught it little that was new.
+
 ## Capacity plan (assumed RTX 3060 laptop specs: 6 GB, ~336 GB/s, ~20 TFLOP/s bf16 — replace with `probe.py` output)
 
 | size | infer bf16 | infer int4 | AR ceiling bf16 | LoRA | QLoRA | full FT | LoRA Mtok/h |
