@@ -37,6 +37,7 @@ NAV = """<style>
   <a class="link" href="maze.html" aria-current="page">Maze</a>
   <a class="link" href="sudoku.html">Sudoku</a>
   <a class="link" href="code.html">Code</a>
+  <a class="link" href="progress.html">Progress</a>
 </nav>"""
 
 def full_page(body):

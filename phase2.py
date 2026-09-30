@@ -84,7 +84,7 @@ def bestof(a):
     with open(a.out, "a", encoding="utf-8") as log:
         for i, task in enumerate(tasks):
             if task["id"] in done: continue
-            samples, dt = sample(tok, model, task, a.k, a.temperature)
+            samples, dt = sample(tok, model, task, a.k, a.temperature, a.max_new)
             codes = [extract_code(t, task) for t, _ in samples]
             vis = checks(task, codes, visible_only=True)
             hid = checks(task, codes, visible_only=False)
@@ -114,12 +114,17 @@ def summarize_bestof(path):
 def collect(a):
     """Training problems: keep sampled answers that pass ALL tests (deduplicated, up to --keep per problem)."""
     tasks = load_train_tasks()
+    if a.only_unsolved_from:                      # round 2: spend more samples where round 1 found nothing
+        unsolved = {json.loads(l)["task"] for l in open(a.only_unsolved_from, encoding="utf-8")
+                    if l.strip() and json.loads(l)["passed"] == 0}
+        tasks = [t for t in tasks if t["id"] in unsolved]
+        print(f"re-attacking {len(tasks)} problems unsolved in {a.only_unsolved_from}", flush=True)
     if a.limit: tasks = tasks[: a.limit]
     done = done_ids(a.out); tok, model = load_model(a.adapter)
     with open(a.out, "a", encoding="utf-8") as log:
         for i, task in enumerate(tasks):
             if task["id"] in done: continue
-            samples, dt = sample(tok, model, task, a.k, a.temperature)
+            samples, dt = sample(tok, model, task, a.k, a.temperature, a.max_new)
             codes = [extract_code(t, task) for t, _ in samples]
             ok = checks(task, codes, visible_only=False)
             keep, seen = [], set()
@@ -142,7 +147,8 @@ def train(a):
     for path in a.data:
         for l in open(path, encoding="utf-8"):
             r = json.loads(l)
-            for code in r["solutions"]:
+            if r["passed"] / r["k"] > a.max_pass_rate: continue          # skip problems it already finds easy
+            for code in r["solutions"][: a.per_problem]:
                 ex.append((r["user"], f"```python\n{code.strip()}\n```"))
     random.Random(0).shuffle(ex)
     print(f"{len(ex)} verified examples from {len(a.data)} file(s)", flush=True)
@@ -170,7 +176,7 @@ def train(a):
                 if step % 10 == 0:
                     print(f"epoch {ep + 1} step {step}/{total} loss {loss.item() * a.accum:.4f} {(time.time() - t0) / 60:.1f} min", flush=True)
     model.save_pretrained(a.out)
-    json.dump({"base": BASE, "data": a.data, "examples": len(ex), "epochs": a.epochs, "rank": a.rank, "lr": a.lr},
+    json.dump({"base": BASE, "data": a.data, "examples": len(ex), "max_pass_rate": a.max_pass_rate, "per_problem": a.per_problem, "epochs": a.epochs, "rank": a.rank, "lr": a.lr},
               open(os.path.join(a.out, "phase2_config.json"), "w"), indent=1)
     print("saved", a.out)
 
@@ -182,6 +188,8 @@ if __name__ == "__main__":
     ap.add_argument("--adapter"); ap.add_argument("--limit", type=int); ap.add_argument("--greedy", action="store_true")
     ap.add_argument("--keep", type=int, default=4); ap.add_argument("--out")
     ap.add_argument("--data", nargs="+"); ap.add_argument("--epochs", type=int, default=2); ap.add_argument("--accum", type=int, default=8)
+    ap.add_argument("--only-unsolved-from"); ap.add_argument("--max-new", type=int, default=512); ap.add_argument("--max-pass-rate", type=float, default=1.0)
+    ap.add_argument("--per-problem", type=int, default=None, help="max verified solutions used per problem")
     ap.add_argument("--rank", type=int, default=16); ap.add_argument("--lr", type=float, default=1e-4); ap.add_argument("--max-len", type=int, default=1024)
     a = ap.parse_args()
     if a.out and a.mode != "train": os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)

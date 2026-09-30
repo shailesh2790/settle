@@ -1,0 +1,63 @@
+[09-28 22:45] START re-attack: 32 samples on round-1 unsolved problems
+Using the latest cached version of the dataset since mbpp couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'full' at C:\Users\Shailesh\.cache\huggingface\datasets\mbpp\full\0.0.0\4bb6404fdc6cacfda99d4ac4205087b89d32030c (last modified on Mon Sep 28 12:27:28 2026).
+re-attacking 139 problems unsolved in runs\phase2\collect_r1.jsonl
+Traceback (most recent call last):
+  File "C:\MLProject\SETTLE\phase2.py", line 197, in <module>
+    {"bestof": bestof, "collect": collect, "train": train, "summary": lambda a: summarize_bestof(a.out)}[a.mode](a)
+  File "C:\MLProject\SETTLE\phase2.py", line 127, in collect
+    samples, dt = sample(tok, model, task, a.k, a.temperature)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\utils\_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+  File "C:\MLProject\SETTLE\phase2.py", line 60, in sample
+    out = model.generate(**ids, max_new_tokens=max_new, pad_token_id=tok.eos_token_id, **kw)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\utils\_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\generation\utils.py", line 2566, in generate
+    result = decoding_method(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\generation\utils.py", line 2789, in _sample
+    outputs = model_forward(**model_inputs, return_dict=True)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\utils\generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 449, in forward
+    outputs: BaseModelOutputWithPast = self.model(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\utils\generic.py", line 1072, in wrapper
+    outputs = func(self, *args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 384, in forward
+    hidden_states = decoder_layer(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 234, in forward
+    hidden_states, _ = self.self_attn(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\torch\nn\modules\module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\models\qwen2\modeling_qwen2.py", line 169, in forward
+    attn_output, attn_weights = attention_interface(
+  File "C:\MLProject\SETTLE\.venv\lib\site-packages\transformers\integrations\sdpa_attention.py", line 96, in sdpa_attention_forward
+    attn_output = torch.nn.functional.scaled_dot_product_attention(
+torch.AcceleratorError: CUDA error: unknown error
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[09-29 08:09] FAILED re-attack: 32 samples on round-1 unsolved problems (exit 1); rerun this script to resume
+=== resumed 09-29 08:14 after sleep + GPU reset; re-attack capped at 384 tokens ===
+Docker Desktop is not running: start it first.

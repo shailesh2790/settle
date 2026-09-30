@@ -77,6 +77,7 @@
   <a class="link" href="maze.html">Maze</a>
   <a class="link" href="sudoku.html">Sudoku</a>
   <a class="link" href="code.html" aria-current="page">Code</a>
+  <a class="link" href="progress.html">Progress</a>
 </nav>
 
 <div class="wrap">
@@ -149,6 +150,26 @@
       </table>
     </div>
     <p class="hint" style="max-width:none">The visible test is a useful but leaky judge. Anything that retries or searches on code while trusting it inherits that 10% error. Sudoku's rule check, by contrast, is exact.</p>
+  </section>
+
+  <section class="verdict" aria-labelledby="p2-h">
+    <div class="verdict-head">
+      <h2 id="p2-h">Phase 2: try several, and learn from what works</h2>
+      <span class="pill mixed">Round 2 paused</span>
+    </div>
+    <p style="margin:0;max-width:70ch">Instead of repairing one answer, the model samples 8 answers per task and submits the first that passes the visible test. Then it is fine-tuned on its own solutions to separate training problems (MBPP train and validation, never the test set), keeping only answers that pass every test.</p>
+    <div class="tablewrap">
+      <table class="cmp">
+        <thead><tr><th>Same 257 test tasks</th><th>Before fine-tune</th><th>After round 1</th></tr></thead>
+        <tbody>
+          <tr><td>One greedy answer</td><td class="num">50.2%</td><td class="num">49.8%</td></tr>
+          <tr><td><b>Best of 8, chosen by the visible test</b></td><td class="num"><b>70.8%</b></td><td class="num">69.3%</td></tr>
+          <tr><td>Any of 8 passes (ceiling)</td><td class="num">74.7%</td><td class="num">75.1%</td></tr>
+          <tr><td>Time for 8 answers</td><td class="num">14.7 s</td><td class="num">11.0 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" style="max-width:none"><b>Sampling and checking works:</b> +20.6 points over one answer, versus +2.7 from repair. <b>Round 1 of self-training did not:</b> none of the changes is significant, because 44% of its 972 verified solutions came from problems it already found easy. Round 2 trains only on the frontier (problems solved at most half the time) and is paused 9 of 139 problems into its first step.</p>
   </section>
 
   <section class="notes">

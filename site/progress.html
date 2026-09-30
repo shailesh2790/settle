@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Settle Progress</title>
+<meta name="description" content="Where the Settle project stands: small reasoners that train on a laptop and run on a phone. What worked, what didn't, and what's next.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+  .hero { display: grid; gap: 12px; padding-block: 8px 0; }
+  .hero h1 { font-size: clamp(32px, 5.5vw, 50px); max-width: 20ch; }
+  .asof { font: 13px/1 var(--mono); color: var(--muted); }
+
+  .chip { display: inline-flex; align-items: center; gap: 5px; font: 600 11.5px/1 var(--body); text-transform: uppercase; letter-spacing: 0.07em;
+          padding: 5px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .chip.good { color: var(--good); } .chip.bad { color: var(--warn); } .chip.mixed { color: var(--muted); } .chip.live { color: var(--belief); }
+
+  .score { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+  .tile .what { font: 600 11px/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .tile .num { font: 500 30px/1.05 var(--mono); font-variant-numeric: tabular-nums; }
+  .tile .num small { font-size: 15px; color: var(--muted); }
+  .tile p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .tile a { font-size: 13.5px; font-weight: 600; text-decoration: none; }
+
+  .timeline { display: grid; border-top: 1px solid var(--line); }
+  .ev { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 4px 18px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .ev .date { font: 13px/1.4 var(--mono); color: var(--muted); padding-top: 2px; }
+  .ev h3 { margin: 0 0 4px; font: 600 16px/1.3 var(--body); }
+  .ev p { margin: 0; font-size: 14px; color: var(--muted); max-width: 68ch; }
+  .ev p b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 640px) { .ev { grid-template-columns: 1fr; } .ev .chip { justify-self: start; } }
+
+  .lessons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px 36px; counter-reset: l; }
+  .lessons div { display: grid; gap: 4px; }
+  .lessons h3 { margin: 0; font: 600 16px/1.3 var(--display); }
+  .lessons p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  .phase { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 14px 16px; background: var(--surface);
+           border: 1px solid var(--line); border-radius: 8px; }
+  .phase h3 { margin: 0; font: 600 16px/1.3 var(--body); }
+  .phase p { margin: 0; grid-column: 1 / -1; font-size: 14px; color: var(--muted); max-width: 75ch; }
+  .phases { display: grid; gap: 10px; }
+  .now { border-color: var(--belief); }
+  section > h2 { margin-bottom: 14px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .links a { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 9px 12px; font-weight: 600; font-size: 14px; text-decoration: none; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Site">
+  <a class="brand" href="./">Settle</a>
+  <a class="link" href="maze.html">Maze</a>
+  <a class="link" href="sudoku.html">Sudoku</a>
+  <a class="link" href="code.html">Code</a>
+  <a class="link" href="progress.html" aria-current="page">Progress</a>
+</nav>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="asof">Status as of 30 September 2026 · one laptop (RTX 3060, 6 GB)</span>
+    <h1>Where we are</h1>
+    <p class="lede">The goal: <b>reasoning that trains on a laptop and runs on a phone</b>, without huge pretraining. The approach: small models that hold a problem in a hidden (latent) state and refine it in place, check their own answers, and spend extra effort only where they are unsure. Everything below was measured on problems the models never trained on.</p>
+  </header>
+
+  <section aria-labelledby="score-h">
+    <h2 id="score-h">Best results so far</h2>
+    <div class="score">
+      <div class="tile"><span class="what">Sudoku, hard held-out puzzles</span><span class="num">72%</span>
+        <p>233k parameters, 3 hours of laptop training, with verified search. 48% by thinking alone. Never returns a wrong grid.</p><a href="sudoku.html">Try it →</a></div>
+      <div class="tile"><span class="what">Mazes, 41×41 (trained up to 15×15)</span><span class="num">58% <small>from 25%</small></span>
+        <p>After learning to say "no path", its search became reliable and 3–7× cheaper.</p><a href="maze.html">Try the toggle →</a></div>
+      <div class="tile"><span class="what">Says "no path" when there is none</span><span class="num">80/80 <small>from 0/80</small></span>
+        <p>13 minutes of extra CPU training. The original model drew a path through every blocked maze.</p></div>
+      <div class="tile"><span class="what">Code, MBPP (1.5B model)</span><span class="num">70.8% <small>from 50.2%</small></span>
+        <p>Sample 8 answers, submit the first that passes the visible test. No training needed.</p><a href="code.html">See the data →</a></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="tl-h">
+    <h2 id="tl-h">What we tried</h2>
+    <div class="timeline">
+      <div class="ev"><span class="date">26 Sep</span><div><h3>Maze reasoner in the browser</h3><p>An 11,953-parameter network that thinks by repeating one update. <b>100% on 17×17 mazes</b>, trained only up to 15×15. Ported to JavaScript; it matches the Python model exactly.</p></div><span class="chip good">✓ Worked</span></div>
+      <div class="ev"><span class="date">26 Sep</span><div><h3>Sudoku from examples, 10 minutes</h3><p>Told which cells share a row, column or box, never the rule. Learned deduction (7.5%) but not guessing; verified search lifted it to <b>38%</b>.</p></div><span class="chip good">✓ Worked</span></div>
+      <div class="ev"><span class="date">27 Sep</span><div><h3>Faster code by diffusion decoding</h3><p>A 1.5B diffusion model writes several tokens at once: 2× tokens per second, but <b>40.4% vs 50.4%</b> solved and longer answers. Not worth it on a laptop.</p></div><span class="chip bad">✕ Didn't work</span></div>
+      <div class="ev"><span class="date">27 Sep</span><div><h3>Sudoku, 3 hours of training</h3><p>Same 233k parameters. Thinking alone <b>7.5% → 48%</b>; with search <b>38% → 72%</b>. It now solves puzzles needing 50+ backtracks without search.</p></div><span class="chip good">✓ Worked</span></div>
+      <div class="ev"><span class="date">27 Sep</span><div><h3>Energy-based reasoner</h3><p>Solve by descending a learned energy. Solved 8% of small mazes and none larger, and its learned checker lost reliability on bigger mazes.</p></div><span class="chip bad">✕ Didn't work</span></div>
+      <div class="ev"><span class="date">27 Sep</span><div><h3>Extra effort only when unsure</h3><p>Thinking longer when unsure: <b>+8 points</b> on large mazes at no cost on easy ones. Searching when unsure doubled 41×41 but broke correct answers, because the model trusted itself on mazes it had never seen.</p></div><span class="chip mixed">◐ Mixed</span></div>
+      <div class="ev"><span class="date">27 Sep</span><div><h3>Teaching it to say "no path"</h3><p>Trained on some unsolvable mazes, it recognised <b>80 of 80</b>. Search built on that honesty became perfectly calibrated, 3–7× cheaper, and reached <b>58%</b> on 41×41.</p></div><span class="chip good">✓ Worked</span></div>
+      <div class="ev"><span class="date">27 Sep</span><div><h3>Retrying code with error messages</h3><p>+2.7 points for 3× the time. A 1.5B model mostly can't use an error message to fix its own code.</p></div><span class="chip bad">✕ Didn't work</span></div>
+      <div class="ev"><span class="date">28 Sep</span><div><h3>Try 8, keep the one that passes</h3><p>Sample 8 answers and submit the first that passes the visible test: <b>50.2% → 70.8%</b>, close to the 74.7% ceiling.</p></div><span class="chip good">✓ Worked</span></div>
+      <div class="ev"><span class="date">28 Sep</span><div><h3>Learning from its own verified code (round 1)</h3><p>Fine-tuned on 972 of its own tested solutions: no significant change. 44% came from problems it already found easy, so it learned little new.</p></div><span class="chip bad">✕ Didn't work</span></div>
+      <div class="ev"><span class="date">29 Sep</span><div><h3>Round 2: train only on the frontier</h3><p>32 attempts on the problems it never solved, then train only on problems it gets right half the time or less. <b>Paused at 9 of 139</b> problems when the laptop went to sleep.</p></div><span class="chip live">⏸ Paused</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="lessons-h">
+    <h2 id="lessons-h">What we've learned</h2>
+    <div class="lessons">
+      <div><h3>Training time is the cheapest lever</h3><p>The same small model went from 7.5% to 48% just by training for 3 hours instead of 10 minutes.</p></div>
+      <div><h3>A checker turns guesses into answers</h3><p>With an exact check, search added 24 points on Sudoku and never returned a wrong answer.</p></div>
+      <div><h3>Knowing when you've failed is trainable</h3><p>"No path" took 13 minutes to learn, and it is what made the model's own search trustworthy.</p></div>
+      <div><h3>A search needs a judge it can trust</h3><p>Self-confidence failed on problems the search itself created. On code, the visible test is right 90% of the time.</p></div>
+      <div><h3>Try several beats fix one</h3><p>For small models, sampling and checking (+20.6 points) far outperformed repairing from error messages (+2.7).</p></div>
+      <div><h3>What you learn from matters</h3><p>Self-training on problems it already solved taught nothing. The frontier is where learning happens.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="road-h">
+    <h2 id="road-h">Roadmap</h2>
+    <div class="phases">
+      <div class="phase"><h3>1. Verify and retry on real code</h3><span class="chip good">✓ Done</span>
+        <p>Repair gave +2.7 points; best of 8 with the visible test gave +20.6. The visible test is a useful but imperfect judge (90%).</p></div>
+      <div class="phase now"><h3>2. Learn from its own verified work</h3><span class="chip live">⏸ Paused</span>
+        <p>Round 1 showed no gain. Round 2 targets the frontier and is 9 of 139 problems into its first step, ready to resume when the laptop can stay plugged in with the lid open for about 4 hours.</p></div>
+      <div class="phase"><h3>3. Think in latent space, not tokens</h3><span class="chip mixed">◐ Started</span>
+        <p>Proven on mazes and Sudoku (the Arena scorecard). The open step is bringing the same "refine until confident" loop into a language model.</p></div>
+      <div class="phase"><h3>4. Run it small, everywhere</h3><span class="chip mixed">◐ Started</span>
+        <p>The maze and Sudoku models already run in any browser, phones included. Next: 4-bit versions of the code model for laptops and phones.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="links-h">
+    <h2 id="links-h">Look closer</h2>
+    <div class="links">
+      <a href="sudoku.html">Sudoku Lab</a><a href="maze.html">Maze with "no path" toggle</a><a href="code.html">Code benchmark data</a>
+      <a href="https://github.com/shailesh2790/settle">Code on GitHub</a>
+    </div>
+  </section>
+
+  <footer>Single runs, with small samples on the largest mazes (12 instances). Numbers come from the files in the GitHub repository's <code>runs/</code> folder.</footer>
+</div>
+</body>
+</html>
