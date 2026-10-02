@@ -1,0 +1,28 @@
+{
+ "copy input": [],
+ "local rule + keep unseen": [
+  "3618c87e",
+  "50cb2852",
+  "6f8cd79b",
+  "a699fb00",
+  "bb43febb",
+  "dc1df850"
+ ],
+ "transform search": [
+  "0d3d703e",
+  "3c9b0459",
+  "6150a2bd",
+  "67a3c6ac",
+  "68b16354",
+  "74dd1130",
+  "9dfd6313",
+  "b1948b0a",
+  "c8f0f002",
+  "d511f180",
+  "ed36ccf7"
+ ],
+ "local-rule lookup": [
+  "3618c87e",
+  "6f8cd79b"
+ ]
+}
