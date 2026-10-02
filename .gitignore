@@ -29,3 +29,7 @@ runs/STOP
 
 # fine-tuned LoRA adapters (large; reproducible from runs/phase2/collect_*.jsonl)
 runs/phase2/adapter_*/
+
+# local runtime binaries and quantised models (downloaded, not committed)
+tools/llama.cpp/
+models/

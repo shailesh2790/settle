@@ -102,6 +102,29 @@ made answers shorter. The verified solutions came mostly from problems it could 
 examples were from problems solved by 6-8 of 8 samples, only 15% from problems solved by 1-2 of 8 (the frontier),
 because easy problems yield more distinct correct answers. So they taught it little that was new.
 
+## Pocket runtime, week 1: a local 4-bit model, measured in joules per correct answer
+
+`runtime_bench.py`, `runtime_week1.ps1`, results in `runs/runtime/` (2026-10-02). Same MBPP test tasks, prompts
+and Docker sandbox as above. llama.cpp (build 11344, CUDA 12.4) runs Qwen2.5-1.5B-Instruct quantised to 4 bits
+(Q4_K_M, 1.1 GB instead of 3.1 GB). Energy is read from the GPU's own counter (NVML); the CPU is not metered,
+which flatters the Python-heavy transformers engine.
+
+| Same 100 tasks | transformers bf16 | llama.cpp 4-bit | Change |
+|---|---|---|---|
+| One answer: solved | 54.0% | 59.0% | +13 / -8 tasks, not significant |
+| One answer: seconds per task | 5.23 | 0.49 | 10.7x faster |
+| One answer: GPU energy per correct answer | 416 J | 83 J | 5.0x less |
+| Best of 8: solved | 68.0% | 79.0% | +17 / -6 tasks (z = 2.3) |
+| Best of 8: seconds per task | 14.72 | 3.86 | 3.8x faster |
+| Best of 8: GPU energy per correct answer | 1,726 J | 466 J | 3.7x less |
+
+On all 257 tasks the 4-bit runtime solves 56.8% with one answer and 72.4% with best of 8 (bf16 runs: 50.2% and
+70.8%). Quantising did not cost accuracy; the small gains are more likely from decoding and chat-template
+differences between the engines than from the 4-bit weights. Raw generation speed (`llama-bench`): 181 tokens/s.
+
+Best of 8 adds about 15 points but costs about 5.6x the energy per correct answer, so it should be spent only when
+the cheap answer fails its check: that routing is week 2.
+
 ## Capacity plan (assumed RTX 3060 laptop specs: 6 GB, ~336 GB/s, ~20 TFLOP/s bf16 — replace with `probe.py` output)
 
 | size | infer bf16 | infer int4 | AR ceiling bf16 | LoRA | QLoRA | full FT | LoRA Mtok/h |

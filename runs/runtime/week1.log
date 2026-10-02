@@ -1,0 +1,34 @@
+[10-02 17:44] START llama.cpp 4-bit, all 257 tasks
+Using the latest cached version of the dataset since mbpp couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'sanitized' at C:\Users\Shailesh\.cache\huggingface\datasets\mbpp\sanitized\0.0.0\4bb6404fdc6cacfda99d4ac4205087b89d32030c (last modified on Sat Sep 26 21:05:27 2026).
+GPU idle power: 16.8 W
+25/257
+50/257
+75/257
+100/257
+125/257
+150/257
+175/257
+200/257
+225/257
+250/257
+
+runs\runtime\llamacpp_q4.jsonl: llama.cpp Q4_K_M, 257 tasks, GPU idle 16.8 W
+  one greedy answer  solved  56.8%   0.52 s/task   142.3 tok/s    52.0 J/task    91.5 J per correct answer (  76.1 above idle)
+  best of 8          solved  72.4%   3.97 s/task   228.1 tok/s   355.7 J/task   491.4 J per correct answer ( 399.2 above idle)
+[10-02 18:10] DONE llama.cpp 4-bit, all 257 tasks
+[10-02 18:10] START transformers bf16, first 100 tasks (energy)
+Using the latest cached version of the dataset since mbpp couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'sanitized' at C:\Users\Shailesh\.cache\huggingface\datasets\mbpp\sanitized\0.0.0\4bb6404fdc6cacfda99d4ac4205087b89d32030c (last modified on Sat Sep 26 21:05:27 2026).
+GPU idle power: 18.4 W
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+25/100
+50/100
+75/100
+100/100
+
+runs\runtime\hf_bf16.jsonl: transformers bf16, 100 tasks, GPU idle 18.4 W
+  one greedy answer  solved  54.0%   5.23 s/task    15.9 tok/s   224.6 J/task   415.9 J per correct answer ( 237.3 above idle)
+  best of 8          solved  68.0%  14.72 s/task    64.4 tok/s  1173.8 J/task  1726.2 J per correct answer (1326.8 above idle)
+[10-02 18:47] DONE transformers bf16, first 100 tasks (energy)
+[10-02 18:47] WEEK 1 COMPLETE
