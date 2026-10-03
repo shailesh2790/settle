@@ -18,7 +18,7 @@
           padding: 5px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
   .chip.good { color: var(--good); } .chip.bad { color: var(--warn); } .chip.mixed { color: var(--muted); } .chip.live { color: var(--belief); }
 
-  .score { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .score { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
   .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 8px; align-content: start; }
   .tile .what { font: 600 11px/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
   .tile .num { font: 500 30px/1.05 var(--mono); font-variant-numeric: tabular-nums; }
@@ -61,7 +61,7 @@
 
 <div class="wrap">
   <header class="hero">
-    <span class="asof">Status as of 30 September 2026 · one laptop (RTX 3060, 6 GB)</span>
+    <span class="asof">Status as of 3 October 2026 · one laptop (RTX 3060, 6 GB)</span>
     <h1>Where we are</h1>
     <p class="lede">The goal: <b>reasoning that trains on a laptop and runs on a phone</b>, without huge pretraining. The approach: small models that hold a problem in a hidden (latent) state and refine it in place, check their own answers, and spend extra effort only where they are unsure. Everything below was measured on problems the models never trained on.</p>
   </header>
@@ -77,6 +77,10 @@
         <p>13 minutes of extra CPU training. The original model drew a path through every blocked maze.</p></div>
       <div class="tile"><span class="what">Code, MBPP (1.5B model)</span><span class="num">70.8% <small>from 50.2%</small></span>
         <p>Sample 8 answers, submit the first that passes the visible test. No training needed.</p><a href="code.html">See the data →</a></div>
+      <div class="tile"><span class="what">Energy per correct answer, local 4-bit model</span><span class="num">83 J <small>from 416 J</small></span>
+        <p>Same 1.5B model at 4 bits (1.1 GB): 0.5 s per answer instead of 5.2 s, no accuracy lost.</p></div>
+      <div class="tile"><span class="what">New rules from 2–5 examples (ARC, unseen tasks)</span><span class="num">2.6% <small>from 0%</small></span>
+        <p>One closed-form solve per task, no backprop, 14 seconds for all tasks. Still hard: most rules are beyond it.</p></div>
     </div>
   </section>
 
@@ -94,6 +98,9 @@
       <div class="ev"><span class="date">28 Sep</span><div><h3>Try 8, keep the one that passes</h3><p>Sample 8 answers and submit the first that passes the visible test: <b>50.2% → 70.8%</b>, close to the 74.7% ceiling.</p></div><span class="chip good">✓ Worked</span></div>
       <div class="ev"><span class="date">28 Sep</span><div><h3>Learning from its own verified code (round 1)</h3><p>Fine-tuned on 972 of its own tested solutions: no significant change. 44% came from problems it already found easy, so it learned little new.</p></div><span class="chip bad">✕ Didn't work</span></div>
       <div class="ev"><span class="date">29 Sep</span><div><h3>Round 2: train only on the frontier</h3><p>32 attempts on the problems it never solved, then train only on problems it gets right half the time or less. <b>Paused at 9 of 139</b> problems when the laptop went to sleep.</p></div><span class="chip live">⏸ Paused</span></div>
+      <div class="ev"><span class="date">1–2 Oct</span><div><h3>Learning new rules from a few examples (ARC)</h3><p>A small settling network trained on each task's 2–5 examples solved <b>1 of 114</b> unseen tasks; every simple baseline solved none. It usually memorised the examples instead of learning the rule.</p></div><span class="chip mixed">◐ Weak</span></div>
+      <div class="ev"><span class="date">2 Oct</span><div><h3>Pocket runtime: the model at 4 bits, on a fast engine</h3><p>Same 1.5B model, 1.1 GB instead of 3.1 GB: <b>10.7× faster</b> and <b>5× less energy</b> per correct answer (83 J), with no accuracy lost. Most of the old slowness was software overhead.</p></div><span class="chip good">✓ Worked</span></div>
+      <div class="ev"><span class="date">3 Oct</span><div><h3>Local Field Learner: learning without backprop</h3><p>A fixed random code plus one closed-form solve. It never forgets earlier tasks, and on ARC it solved <b>3 of 114</b> unseen tasks, our best, in 14 seconds instead of 34 minutes.</p></div><span class="chip good">✓ Worked</span></div>
     </div>
   </section>
 
@@ -106,6 +113,7 @@
       <div><h3>A search needs a judge it can trust</h3><p>Self-confidence failed on problems the search itself created. On code, the visible test is right 90% of the time.</p></div>
       <div><h3>Try several beats fix one</h3><p>For small models, sampling and checking (+20.6 points) far outperformed repairing from error messages (+2.7).</p></div>
       <div><h3>What you learn from matters</h3><p>Self-training on problems it already solved taught nothing. The frontier is where learning happens.</p></div>
+      <div><h3>Fast learning doesn't need backprop</h3><p>One closed-form solve beat gradient training at learning ARC rules, about 150× faster, and it never forgets.</p></div>
     </div>
   </section>
 
@@ -117,9 +125,9 @@
       <div class="phase now"><h3>2. Learn from its own verified work</h3><span class="chip live">⏸ Paused</span>
         <p>Round 1 showed no gain. Round 2 targets the frontier and is 9 of 139 problems into its first step, ready to resume when the laptop can stay plugged in with the lid open for about 4 hours.</p></div>
       <div class="phase"><h3>3. Think in latent space, not tokens</h3><span class="chip mixed">◐ Started</span>
-        <p>Proven on mazes and Sudoku (the Arena scorecard). The open step is bringing the same "refine until confident" loop into a language model.</p></div>
-      <div class="phase"><h3>4. Run it small, everywhere</h3><span class="chip mixed">◐ Started</span>
-        <p>The maze and Sudoku models already run in any browser, phones included. Next: 4-bit versions of the code model for laptops and phones.</p></div>
+        <p>Proven on mazes and Sudoku (the Arena scorecard). On ARC, backprop-free fast learning is ahead but still at 2.6% of unseen tasks; richer, object-level codes are next.</p></div>
+      <div class="phase now"><h3>4. Run it small, everywhere</h3><span class="chip live">● In progress</span>
+        <p>Week 1 done: the code model runs locally at 4 bits, 0.5 s and 83 J per correct answer. Next: a router that spends more effort only when a cheap answer fails its check, then the phone.</p></div>
     </div>
   </section>
 
