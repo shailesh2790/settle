@@ -23,12 +23,21 @@ is exactly right; 2 attempts allowed (as in ARC Prize).
 | Local-rule lookup (3x3 neighbourhood -> colour) | 1.2% | 0% |
 | Local rule, unseen neighbourhoods keep their colour | 3.5% | 0% |
 | **Settle core, trained per task on its examples** (`settle_ttt.py`) | **5.8%** (7 of its 10 solved by no baseline) | **0.9%** (1 task) |
-| Any baseline or Settle | 13.9% | 0.9% |
+| **Local Field Learner: HD code of each 3x3 / 5x5 neighbourhood + one ridge solve per task** (`hd_ridge.py`) | **11.0%** (9 solved by no other method) | **2.6%** (3 tasks) |
+| Any method above | 19.1% | 3.5% |
 
 `python arc/arc_lab.py baseline --set dev|heldout`, `python arc/settle_ttt.py --set dev|heldout`.
 Per-task results: `runs/arc/`.
 
+Local Field Learner settings were chosen on dev only (3x3 neighbourhood, D = 4096, lambda = 10, with a 5x5
+neighbourhood as the second attempt; tuning grid in `runs/arc/hd_ridge_tune_dev.json`) and held-out was run once.
+It fits all 173 dev tasks in 14 seconds on the CPU, against about 34 minutes for the gradient-trained Settle core.
+
 ## What we learned
+
+- **Closed-form fast learning beats gradient fast learning here.** One ridge solve over a fixed random code
+  of each neighbourhood solved more tasks than per-task gradient training (dev 19 vs 10, held-out 3 vs 1) in
+  about 1/150th of the time, because similar neighbourhoods give similar answers instead of being memorised.
 
 - **Memorising is not learning the rule.** Settle reproduced all of its own examples on 91/173 dev and 52/114
   held-out tasks, but generalised on 10 and 1. Trained from scratch on 2-5 examples, a network has no reason
